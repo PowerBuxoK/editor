@@ -5,6 +5,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 project(editor)
 
 find_package(ICU COMPONENTS i18n io uc)
+set(CURSES_NEED_NCURSES TRUE)
+set(CURSES_NEED_WIDE TRUE)
 find_package(Curses)
 
 if(Curses_FOUND AND NOT TARGET Curses::Curses)
@@ -21,6 +23,7 @@ add_executable(editor
 	./main.cpp
 	./RenderContext.cpp
 )
+target_include_directories(editor PRIVATE ./include/)
 
 target_link_libraries(editor PRIVATE ICU::i18n ICU::io ICU::uc)
 target_link_libraries(editor PRIVATE Curses::Curses)
