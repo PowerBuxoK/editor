@@ -1,3 +1,4 @@
+#include "GapBuffer.h"
 #include <argparser/argparser.cpp>
 #include <cwchar>
 #include <ncurses.h>
@@ -12,7 +13,7 @@ int main(int argc, char *argv[]) {
   addstr("TEST");
   move(1, 0);
   refresh();
-  std::wstring h;
+  GapBuffer buf;
   wint_t c;
   while (!quit) {
     if (get_wch(&c) != OK)
@@ -24,17 +25,26 @@ int main(int argc, char *argv[]) {
     case 127:
     case KEY_BACKSPACE:
     case KEY_DC:
-      if (!h.empty())
-        h.pop_back();
+      buf.deleteChar();
       break;
     default:
-      h += c;
+      buf.insertChar(c);
       break;
     }
     clear();
-    mvaddwstr(1, 0, h.c_str());
-    move(2, 0);
-    printw("%i", c);
+    move(0, 0);
+    printw("F: %lu T: %lu G: %lu", buf.m_front, buf.m_total, buf.m_gap);
+    move(1, 0);
+    // buf.debugPrint();
+    cchar_t complex_char;
+    for (size_t i = 0; i < buf.m_total; i++) {
+      if (i == buf.m_front) {
+        i += buf.m_gap;
+        continue;
+      }
+      setcchar(&complex_char, &buf.m_data[i], WA_NORMAL, 0, NULL);
+      add_wch(&complex_char);
+    }
     refresh();
   }
   endwin();
