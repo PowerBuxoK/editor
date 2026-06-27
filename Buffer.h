@@ -1,42 +1,24 @@
 #pragma once
+#include "Defines.h"
 #include "GapBuffer.h"
 #include <cstring>
 #include <curses.h>
 #include <optional>
 #include <string>
 
+class App;
+
 class Buffer {
 public:
-  Buffer() {};
+  Buffer(App &app) : m_buf(), m_app(app) {};
   ~Buffer() {};
 
-  size_t FindLineStart(size_t id) {
-    while (m_buf.m_data < m_buf.m_data + id && m_buf[--id] != L'\n') {
-    }
-    if (m_buf[id] == L'\n') {
-      id += 1;
-    }
-    return id;
-  }
-
-  size_t GetLine(size_t id) {
-    size_t count = 1;
-    while (m_buf.m_data < m_buf.m_data + (id--)) {
-      if (m_buf[id] == L'\n')
-        count++;
-    }
-    return count;
-  }
-
   void Draw(WINDOW *win) {
-    size_t view_line_start = FindLineStart(m_view_char);
-    size_t cursor_line_start = FindLineStart(m_buf.m_front);
+    size_t view_line_start =
+        m_buf.FindLineStart(std::min(m_buf.m_front, m_view_char));
+    size_t cursor_line_start = m_buf.FindLineStart(m_buf.m_front);
     wclear(win);
     wmove(win, 0, 0);
-    wprintw(win, "F: %lu T: %lu G: %lu VL: %lu L: %lu", m_buf.m_front,
-            m_buf.m_total, m_buf.m_gap, view_line_start, cursor_y);
-
-    wmove(win, 1, 0);
 
     cchar_t complex_char;
     int cur_y, cur_x, max_y, max_x;
@@ -70,50 +52,47 @@ public:
       wadd_wch(win, &complex_char);
     }
 
-    wmove(win, cursor_y, cursor_x);
+    wmove(win, cursor_y - m_buf.GetLine(view_line_start) + 1, cursor_x);
+    cursor_x_vis = cursor_x;
+    cursor_y_vis = cursor_y - m_buf.GetLine(view_line_start);
   };
 
   void UpdateCursorData() {
-    cursor_x = m_buf.m_front - FindLineStart(m_buf.m_front);
-    cursor_y = GetLine(m_buf.m_front);
+    cursor_x = m_buf.m_front - m_buf.FindLineStart(m_buf.m_front);
+    cursor_y = m_buf.GetLine(m_buf.m_front);
   }
 
-  void HandleInput(const int res, const wint_t c) {
-    if (res == KEY_CODE_YES) {
-      switch (c) {
-      case KEY_BACKSPACE:
-      case KEY_DC:
-        m_buf.deleteChar();
-        break;
-      case KEY_LEFT:
-        m_buf.moveBackward();
-        break;
-      case KEY_RIGHT:
-        m_buf.moveForward();
-        break;
-      }
-    } else {
-      switch (c) {
-      case 127:
-      case 8:
-        m_buf.deleteChar();
-        break;
-      default:
-        m_buf.insertChar(c);
-        break;
-      }
+  void HandleInput(const Mode mode, const int res, const wint_t c) {
+    switch (mode) {
+    case Mode::insert:
+      if (m_editable)
+        HandleInputInsert(res, c);
+      break;
+    default:
+      break;
     }
-    UpdateCursorData();
   };
+
+  bool HandleMacro(const size_t quantifier, const std::wstring &macro);
+
+  void HandleInputInsert(const int res, const wint_t c);
+
+  size_t getCursorX() const { return cursor_x; }
+  size_t getCursorY() const { return cursor_y; }
+
+  size_t visualCursorX() const { return cursor_x_vis; }
+  size_t visualCursorY() const { return cursor_y_vis; }
 
   GapBuffer m_buf;
 
 private:
   size_t cursor_x = 0;
   size_t cursor_y = 0;
+  size_t cursor_x_vis = 0;
+  size_t cursor_y_vis = 0;
   size_t m_view_char = 0;
   std::optional<std::string> m_path;
+  App &m_app;
   bool m_enable_wrapping = false;
-  bool m_virtual;
-  bool m_editable;
+  bool m_editable = true;
 };

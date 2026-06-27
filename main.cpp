@@ -4,6 +4,9 @@
 
 int main(int argc, char *argv[]) {
 
+  arp::Argparser ap(argc, argv);
+  ap.parse();
+
   setlocale(LC_CTYPE, "C.UTF-8");
   bool quit = false;
   initscr();

@@ -25,9 +25,9 @@ public:
     delwin(win);
   };
 
-  void HandleInput(const int res, const wint_t c) {
+  void HandleInput(const Mode mode, const int res, const wint_t c) {
     if (!m_buf)
       return;
-    m_buf->HandleInput(res, c);
+    m_buf->HandleInput(mode, res, c);
   };
 };

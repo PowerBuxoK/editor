@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.14)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project(editor)
 
@@ -21,10 +23,11 @@ endif()
 
 add_executable(editor
 	./main.cpp
+	./Buffer.cpp
 )
+
 target_include_directories(editor PRIVATE ./include/)
 
 target_link_libraries(editor PRIVATE ICU::i18n ICU::io ICU::uc)
 target_link_libraries(editor PRIVATE Curses::Curses)
-set_target_properties(editor PROPERTIES CMAKE_CXX_STANDARD 20)
-set_target_properties(editor PROPERTIES CMAKE_CXX_STANDARD_REQUIRED ON)
+

@@ -1,12 +1,13 @@
 #pragma once
 #include "Window.h"
 #include <algorithm>
+#include <deque>
 #include <ncurses.h>
 #include <vector>
 
 class Manager {
 public:
-  Manager(std::vector<Window> &windows) : m_windows(windows) {};
+  Manager(std::deque<Window> &windows) : m_windows(windows) {};
   ~Manager() {};
 
   void Draw() {
@@ -31,5 +32,5 @@ public:
   };
 
 private:
-  std::vector<Window> &m_windows;
+  std::deque<Window> &m_windows;
 };

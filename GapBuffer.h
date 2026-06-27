@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <string>
 
 class GapBuffer {
 public:
@@ -51,6 +52,14 @@ public:
 
   void moveForward() { moveCursor(1); }
   void moveBackward() { moveCursor(-1); }
+  void moveUp(size_t target_x) {
+    size_t new_pos = FindLineStart(FindLineStart(m_front) - 1);
+    moveCursor(new_pos - m_front + std::min(LineLength(new_pos), target_x));
+  }
+  void moveDown(size_t target_x) {
+    size_t new_pos = FindLineStart(m_front) + LineLength(m_front) + 1;
+    moveCursor(new_pos - m_front + std::min(LineLength(new_pos), target_x));
+  }
 
   void insertChar(const wchar_t ch) {
     if (m_gap == 0) {
@@ -81,12 +90,84 @@ public:
                << std::endl;
   }
 
-  wchar_t operator[](int i) {
+  wchar_t operator[](size_t i) {
+    if (m_total - m_gap == 0) {
+      return L'\0';
+    }
     if (i < m_front) {
       return m_data[i];
     } else {
       return m_data[i + m_gap];
     }
+  }
+
+  size_t FindLineStart(size_t id) {
+    const size_t stid = id;
+    while (id > 0 && (*this)[--id] != L'\n') {
+    }
+    if ((*this)[id] == L'\n' && stid > 0) {
+      id++;
+    }
+    return id;
+  }
+
+  size_t FindLineEnd(size_t id) {
+    while (id < m_total - m_gap && (*this)[++id] != L'\n') {
+    }
+    return id;
+  }
+
+  size_t LineLength(size_t id) {
+    size_t count = 0;
+    id = FindLineStart(id);
+    for (size_t i = id; i < m_total; i++) {
+      if (i == m_front) {
+        i += m_gap;
+        if (i >= m_total)
+          break;
+      }
+      if (m_data[i] == L'\n') {
+        break;
+      }
+      count++;
+    }
+    return count;
+  }
+
+  size_t GetLine(size_t id) {
+    size_t count = 1;
+    while ((id--) > 0) {
+      if ((*this)[id] == L'\n')
+        count++;
+    }
+    return count;
+  }
+
+  void Clean() {
+    m_front = 0;
+    m_gap = m_total;
+  }
+
+  size_t size() { return m_total - m_gap; }
+
+  void SetText(const std::wstring &str) {
+    grow(str.size());
+    memcpy(m_data, str.c_str(), str.size() * sizeof(wchar_t));
+    m_front = str.size();
+    m_gap = m_total - m_front;
+  }
+
+  std::wstring GetString() {
+    std::wstring data;
+    for (size_t i = 0; i < m_total; i++) {
+      if (i == m_front) {
+        i += m_gap;
+        if (i >= m_total)
+          break;
+      }
+      data += m_data[i];
+    }
+    return data;
   }
 
   size_t m_total = 0;
