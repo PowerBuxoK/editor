@@ -81,6 +81,14 @@ public:
                << std::endl;
   }
 
+  wchar_t operator[](int i) {
+    if (i < m_front) {
+      return m_data[i];
+    } else {
+      return m_data[i + m_gap];
+    }
+  }
+
   size_t m_total = 0;
   size_t m_front = 0;
   size_t m_gap = 0;
