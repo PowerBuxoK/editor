@@ -21,7 +21,6 @@ endif()
 
 add_executable(editor
 	./main.cpp
-	./RenderContext.cpp
 )
 target_include_directories(editor PRIVATE ./include/)
 
