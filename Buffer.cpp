@@ -22,9 +22,6 @@ bool Buffer::HandleMacro(const size_t quantifier, const std::wstring &macro) {
   case 'i':
     m_app.m_cur_mode = Mode::insert;
     break;
-  case 'q':
-    m_app.m_stop = true;
-    break;
   default:
     // Executed by quantifier
     for (size_t i = 0; i < quantifier; i++) {
@@ -44,32 +41,6 @@ bool Buffer::HandleMacro(const size_t quantifier, const std::wstring &macro) {
       }
     }
   }
-  // if (res == KEY_CODE_YES) {
-  //   switch (c) {
-  //   case KEY_UP:
-  //     m_buf.moveUp(cursor_x);
-  //     break;
-  //   case KEY_DOWN:
-  //     m_buf.moveDown(cursor_x);
-  //     break;
-  //   case KEY_DC:
-  //   case KEY_LEFT:
-  //     m_buf.moveBackward();
-  //     break;
-  //   case KEY_RIGHT:
-  //     m_buf.moveForward();
-  //     break;
-  //   }
-  // } else {
-  //   switch (c) {
-  //   case 'i':
-  //     m_app.m_cur_mode = Mode::insert;
-  //     break;
-  //   case 'q':
-  //     m_app.m_stop = true;
-  //     break;
-  //   }
-  // }
   UpdateCursorData();
   return true;
 };
@@ -79,7 +50,8 @@ void Buffer::HandleInputInsert(const int res, const wint_t c) {
     switch (c) {
     case KEY_BACKSPACE:
     case KEY_DC:
-      m_buf.deleteChar();
+      if (m_editable)
+        m_buf.deleteChar();
       break;
     case KEY_UP:
       m_buf.moveUp(cursor_x);
@@ -101,10 +73,12 @@ void Buffer::HandleInputInsert(const int res, const wint_t c) {
       break;
     case 127:
     case 8:
-      m_buf.deleteChar();
+      if (m_editable)
+        m_buf.deleteChar();
       break;
     default:
-      m_buf.insertChar(c);
+      if (m_editable)
+        m_buf.insertChar(c);
       break;
     }
   }

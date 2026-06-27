@@ -4,6 +4,7 @@
 #include "Defines.h"
 #include "GapBuffer.h"
 #include "Manager.h"
+#include "UTFHelpers.h"
 #include "Window.h"
 #include <cctype>
 #include <cstdint>
@@ -12,6 +13,7 @@
 #include <curses.h>
 #include <deque>
 #include <format>
+#include <ncurses.h>
 #include <string>
 
 class App {
@@ -95,6 +97,11 @@ public:
           "arrows - move i - insert I - [nop]"
           "\n");
       break;
+    case Mode::command:
+      m_help_window->m_buf->m_buf.SetText(L"HELP [COMMAND MODE]: \n"
+                                          ":w [filename] - save\n"
+                                          ":o [filename] - open\n");
+      break;
     default:
       m_help_window->m_buf->m_buf.SetText(
           L"HELP : Not avaliable for current mode\n");
@@ -116,7 +123,19 @@ public:
   };
 
   void HandleCommandMode(const int res, const wint_t c) {
-    if (res != KEY_CODE_YES) {
+    if (res == KEY_CODE_YES) {
+      switch (c) {
+      case KEY_DC:
+      case KEY_BACKSPACE:
+        m_command_buffer.deleteChar();
+        break;
+      default:
+        break;
+      }
+      if (m_command_buffer.size() == 0) {
+        m_cur_mode = Mode::normal;
+      }
+    } else {
       m_command_buffer.insertChar(c);
       TryExecuteCommand();
     }
@@ -156,7 +175,6 @@ public:
       case 'j':
       case 'k':
       case 'l':
-      case 'q':
       case 'i':
       case 'a':
       case 'A':
@@ -175,13 +193,45 @@ public:
   void TryExecuteCommand() {
     auto cmd = m_command_buffer.GetString().substr(1);
     if (cmd.size() > 0 && cmd.at(cmd.size() - 1) == L'\n') {
+      cmd = m_command_buffer.GetString().substr(1, cmd.size() - 1);
       m_command_buffer.Clean();
       m_cur_mode = Mode::normal;
       auto command_main =
           cmd.find(L" ") == cmd.npos ? cmd : cmd.substr(0, cmd.find(L" "));
-      last_cmd = std::format(L":CMD: {}", cmd);
+      auto command_arg =
+          cmd.find(L" ") == cmd.npos ? L"" : cmd.substr(cmd.find(L" ") + 1);
+      auto success = HandleCommand(command_main, command_arg);
+      last_cmd = std::format(L":CMD: {} {} \n[{}]", command_main, command_arg,
+                             success);
     }
   };
+
+  std::wstring HandleCommand(const std::wstring &cmd, const std::wstring &arg) {
+    if (cmd == L"w") {
+      if (m_windows.size() <= m_focus) {
+      }
+    }
+    if (cmd == L"o") {
+      if (m_windows.size() <= m_focus) {
+      }
+
+      m_windows.at(m_focus).m_buf->setFilepath(WstringToUtf8ICU(arg.c_str()));
+      if (m_windows.at(m_focus).m_buf->Read()) {
+        return L"SUCCESS";
+      } else {
+        return L"FAIL";
+      }
+    }
+    if (cmd == L"q") {
+      m_stop = true;
+      return L"Exiting...";
+    }
+    if (cmd == L"pwd") {
+      return std::format(
+          L"{}", Utf8ToWstringICU(std::filesystem::current_path().c_str()));
+    }
+    return L"No cmd found";
+  }
 
   void TryExecuteMacro() {
     if (m_windows.size() <= m_focus) {
@@ -216,12 +266,7 @@ public:
     }
   }
 
-  void OpenFile(std::string path) {
-    FILE *file = fopen(path.c_str(), "rb");
-    if (!file) {
-      return;
-    }
-  };
+  void OpenFile(std::string path) {};
 
   void UpdateData() {
     if (m_windows.size() <= m_focus)

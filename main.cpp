@@ -17,6 +17,9 @@ int main(int argc, char *argv[]) {
   refresh();
 
   App app;
+  for (auto &filepath : ap.getPositionalArgs()) {
+    app.OpenFile(filepath);
+  }
   app.run();
 
   refresh();

@@ -1,10 +1,21 @@
 #pragma once
 #include "Defines.h"
 #include "GapBuffer.h"
+#include "UTFHelpers.h"
+#include <cstdio>
 #include <cstring>
 #include <curses.h>
+#include <filesystem>
+#include <format>
+#include <fstream>
+#include <iostream>
 #include <optional>
+#include <ostream>
+#include <sstream>
 #include <string>
+#include <unicode/unistr.h>
+#include <unicode/ustream.h>
+#include <vector>
 
 class App;
 
@@ -65,8 +76,7 @@ public:
   void HandleInput(const Mode mode, const int res, const wint_t c) {
     switch (mode) {
     case Mode::insert:
-      if (m_editable)
-        HandleInputInsert(res, c);
+      HandleInputInsert(res, c);
       break;
     default:
       break;
@@ -82,6 +92,56 @@ public:
 
   size_t visualCursorX() const { return cursor_x_vis; }
   size_t visualCursorY() const { return cursor_y_vis; }
+
+  void setFilepath(const std::string &path) { m_path = path; };
+  bool Read() {
+    if (std::filesystem::is_directory(m_path.value())) {
+      m_buf.SetText(L"Cannot open directories (yet)");
+      m_editable = false;
+      return false;
+    }
+    if (!std::filesystem::exists(m_path.value())) {
+      m_buf.SetText(std::format(L"File \"{}\" does not exist",
+                                Utf8ToWstringICU(m_path.value())));
+      m_editable = false;
+      return false;
+    }
+    std::ifstream file(m_path.value(), std::ios::binary);
+    if (!file.is_open()) {
+      m_buf.SetText(std::format(L"Not able to open file \"{}\"",
+                                Utf8ToWstringICU(m_path.value())));
+      m_editable = false;
+      return false;
+    }
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    std::string utf8_content = buffer.str();
+    file.close();
+
+    int32_t i = 0;
+    int32_t length = static_cast<int32_t>(utf8_content.length());
+
+    while (i < length) {
+      UChar32 c;
+      U8_NEXT(utf8_content.c_str(), i, length, c);
+
+      if (c < 0) {
+        continue;
+      }
+
+      m_buf.insertChar(static_cast<wchar_t>(c));
+    }
+
+    m_editable = true;
+    return true;
+  }
+  bool Save() {
+    // std::ofstream myfile(m_path);
+    // myfile.open("example.txt");
+    // myfile << "Writing this to a file.\n";
+    // myfile.close();
+    return false;
+  }
 
   GapBuffer m_buf;
 

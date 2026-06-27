@@ -24,6 +24,7 @@ endif()
 add_executable(editor
 	./main.cpp
 	./Buffer.cpp
+	./UTFHelpers.cpp
 )
 
 target_include_directories(editor PRIVATE ./include/)
