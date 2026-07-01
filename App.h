@@ -240,10 +240,6 @@ public:
       }
     }
     if (cmd == L"q") {
-      m_stop = true;
-      return L"Exiting...";
-    }
-    if (cmd == L"pwd") {
       return std::format(L"{}", std::filesystem::current_path().wstring());
     }
     return L"No cmd found";

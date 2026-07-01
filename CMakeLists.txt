@@ -7,19 +7,25 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 project(editor)
 
 find_package(ICU COMPONENTS i18n io uc)
-set(CURSES_NEED_NCURSES TRUE)
-set(CURSES_NEED_WIDE TRUE)
-find_package(Curses)
-
-if(Curses_FOUND AND NOT TARGET Curses::Curses)
-  add_library(Curses::Curses INTERFACE IMPORTED)
-  set_target_properties(
-    Curses::Curses
-    PROPERTIES
-      INTERFACE_LINK_LIBRARIES "${CURSES_LIBRARIES}"
-      INTERFACE_INCLUDE_DIRECTORIES "${CURSES_INCLUDE_DIRS}"
-  )
+if(WIN32)
+	message("Compiling on Windows, using PDCurses")
+	find_package(PDCurses)
+else()
+	message("Compiling not on Windows using NCurses")
+	set(CURSES_NEED_NCURSES TRUE)
+	set(CURSES_NEED_WIDE TRUE)
+	find_package(Curses)
+	if(Curses_FOUND AND NOT TARGET Curses::Curses)
+		add_library(Curses::Curses INTERFACE IMPORTED)
+		set_target_properties(
+			Curses::Curses
+			PROPERTIES
+				INTERFACE_LINK_LIBRARIES "${CURSES_LIBRARIES}"
+				INTERFACE_INCLUDE_DIRECTORIES "${CURSES_INCLUDE_DIRS}"
+		)
+	endif()
 endif()
+
 
 add_executable(editor
 	./main.cpp
@@ -29,12 +35,13 @@ add_executable(editor
 
 target_compile_definitions(editor PRIVATE NCURSES_WIDECHAR=1)
 
-if(IS_DIRECTORY "${CURSES_INCLUDE_DIRS}/ncurses")
-	target_include_directories(editor PRIVATE ./include/ ${CURSES_INCLUDE_DIRS}/ncurses)
-else()
-	target_include_directories(editor PRIVATE ./include/)
-endif()
+
+target_include_directories(editor PRIVATE ./include/)
+IF (WIN32)
+	target_link_libraries(my_app PRIVATE PDCurses::PDCurses)
+ELSE()
+	target_link_libraries(editor PRIVATE Curses::Curses)
+ENDIF()
 
 target_link_libraries(editor PRIVATE ICU::i18n ICU::io ICU::uc)
-target_link_libraries(editor PRIVATE Curses::Curses)
 
