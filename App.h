@@ -244,8 +244,7 @@ public:
       return L"Exiting...";
     }
     if (cmd == L"pwd") {
-      return std::format(L"{}",
-                         Utf8ToWstringICU(std::filesystem::current_path()));
+      return std::format(L"{}", std::filesystem::current_path().wstring());
     }
     return L"No cmd found";
   }
