@@ -30,7 +30,7 @@ add_executable(editor
 target_compile_definitions(editor PRIVATE NCURSES_WIDECHAR=1)
 
 if(IS_DIRECTORY "${CURSES_LIBRARIES}/ncurses")
-	target_include_directories(editor PRIVATE ./include/ ${CURSES_LIBRARIES}/ncurses)
+	target_include_directories(editor PRIVATE ./include/ ${CURSES_INCLUDE_DIRS}/ncurses)
 else()
 	target_include_directories(editor PRIVATE ./include/)
 endif()
