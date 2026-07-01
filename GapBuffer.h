@@ -112,7 +112,11 @@ public:
   }
 
   size_t FindLineEnd(size_t id) {
+    const size_t stid = id;
     while (id < m_total - m_gap && (*this)[++id] != L'\n') {
+    }
+    if ((*this)[id] == L'\n') {
+      id--;
     }
     return id;
   }
@@ -152,9 +156,9 @@ public:
 
   void SetText(const std::wstring &str) {
     grow(str.size());
-    memcpy(m_data, str.c_str(), str.size() * sizeof(wchar_t));
-    m_front = str.size();
-    m_gap = m_total - m_front;
+    m_front = 0;
+    m_gap = m_total - str.size();
+    memcpy(m_data + m_gap, str.c_str(), str.size() * sizeof(wchar_t));
   }
 
   std::wstring GetString() {

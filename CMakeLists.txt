@@ -27,7 +27,13 @@ add_executable(editor
 	./UTFHelpers.cpp
 )
 
-target_include_directories(editor PRIVATE ./include/)
+target_compile_definitions(editor PRIVATE NCURSES_WIDECHAR=1)
+
+if(IS_DIRECTORY "${CURSES_LIBRARIES}/ncurses")
+	target_include_directories(editor PRIVATE ./include/ ${CURSES_LIBRARIES}/ncurses)
+else()
+	target_include_directories(editor PRIVATE ./include/)
+endif()
 
 target_link_libraries(editor PRIVATE ICU::i18n ICU::io ICU::uc)
 target_link_libraries(editor PRIVATE Curses::Curses)

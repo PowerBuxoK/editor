@@ -31,6 +31,7 @@ public:
       v.m_y = 0;
       v.m_width = max_x;
       v.m_height = max_y - 3;
+      v.name = L"Editor";
       Buffer &buf = m_buffers.emplace_back(*this);
       v.m_buf = &buf;
     }
@@ -42,6 +43,7 @@ public:
       m_data_window->m_y = max_y - 3;
       m_data_window->m_width = max_x / 8;
       m_data_window->m_height = 3;
+      m_data_window->name = L"Cursor state";
       Buffer &buf = m_buffers.emplace_back(*this);
       m_data_window->m_buf = &buf;
     }
@@ -53,6 +55,7 @@ public:
       m_mode_window->m_y = max_y - 3;
       m_mode_window->m_width = max_x / 4;
       m_mode_window->m_height = 3;
+      m_mode_window->name = L"Mode & command";
       Buffer &buf = m_buffers.emplace_back(*this);
       m_mode_window->m_buf = &buf;
     }
@@ -64,6 +67,7 @@ public:
       m_help_window->m_y = max_y - 3;
       m_help_window->m_width = max_x - max_x / 4 + max_x / 8;
       m_help_window->m_height = 3;
+      m_help_window->name = L"Help";
       Buffer &buf = m_buffers.emplace_back(*this);
       m_help_window->m_buf = &buf;
     }
@@ -76,6 +80,7 @@ public:
       Draw();
       UpdateCursor();
       HandleInput();
+      UpdateCursor();
     }
   };
 
@@ -94,13 +99,12 @@ public:
           L"HELP [NORMAL MODE]: \n"
           "hjkl  -  move a - append A - append at EOL : - "
           "command mode\n"
-          "arrows - move i - insert I - [nop]"
-          "\n");
+          "arrows - move i - insert I - [nop]");
       break;
     case Mode::command:
       m_help_window->m_buf->m_buf.SetText(L"HELP [COMMAND MODE]: \n"
-                                          ":w [filename] - save\n"
-                                          ":o [filename] - open\n");
+                                          ":w [filename] - save :q - quit\n"
+                                          ":o [filename] - open");
       break;
     default:
       m_help_window->m_buf->m_buf.SetText(
@@ -177,6 +181,8 @@ public:
       case 'l':
       case 'i':
       case 'a':
+      case 'x':
+      case 'X':
       case 'A':
         m_command_buffer.insertChar(c);
         TryExecuteMacro();
@@ -209,13 +215,24 @@ public:
   std::wstring HandleCommand(const std::wstring &cmd, const std::wstring &arg) {
     if (cmd == L"w") {
       if (m_windows.size() <= m_focus) {
+        return L"No buffer!";
+      }
+
+      if (arg.size() != 0) {
+        m_windows.at(m_focus).m_buf->setFilepath(WstringToUtf8ICU(arg));
+      }
+      if (m_windows.at(m_focus).m_buf->Save()) {
+        return L"SUCCESS";
+      } else {
+        return L"FAIL";
       }
     }
     if (cmd == L"o") {
       if (m_windows.size() <= m_focus) {
+        return L"No buffer!";
       }
 
-      m_windows.at(m_focus).m_buf->setFilepath(WstringToUtf8ICU(arg.c_str()));
+      m_windows.at(m_focus).m_buf->setFilepath(WstringToUtf8ICU(arg));
       if (m_windows.at(m_focus).m_buf->Read()) {
         return L"SUCCESS";
       } else {
@@ -227,8 +244,8 @@ public:
       return L"Exiting...";
     }
     if (cmd == L"pwd") {
-      return std::format(
-          L"{}", Utf8ToWstringICU(std::filesystem::current_path().c_str()));
+      return std::format(L"{}",
+                         Utf8ToWstringICU(std::filesystem::current_path()));
     }
     return L"No cmd found";
   }
@@ -272,8 +289,9 @@ public:
     if (m_windows.size() <= m_focus)
       return;
     Window &cur_wnd = m_windows.at(m_focus);
-    m_data_window->m_buf->m_buf.SetText(std::format(
-        L"{}:{}", cur_wnd.m_buf->getCursorY(), cur_wnd.m_buf->getCursorX()));
+    m_data_window->m_buf->m_buf.SetText(
+        std::format(L"{}:{}\nW:{}", cur_wnd.m_buf->getCursorY(),
+                    cur_wnd.m_buf->getCursorX(), cur_wnd.name));
 
     std::wstring cur_mode;
     switch (m_cur_mode) {
@@ -300,6 +318,7 @@ public:
     if (m_windows.size() <= m_focus)
       return;
     Window &cur_wnd = m_windows.at(m_focus);
+    cur_wnd.m_buf->UpdateCursorData();
     move(cur_wnd.m_buf->visualCursorY(), cur_wnd.m_buf->visualCursorX());
   };
 

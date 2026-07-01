@@ -26,6 +26,19 @@ bool Buffer::HandleMacro(const size_t quantifier, const std::wstring &macro) {
     // Executed by quantifier
     for (size_t i = 0; i < quantifier; i++) {
       switch (macro[0]) {
+      case 'X':
+        if (m_buf.m_front == 0 || m_buf[m_buf.m_front - 1] == L'\n') {
+          break;
+        }
+        m_buf.deleteChar();
+        break;
+      case 'x':
+        if (m_buf.m_front == m_buf.size() || m_buf[m_buf.m_front] == L'\n') {
+          break;
+        }
+        m_buf.moveForward();
+        m_buf.deleteChar();
+        break;
       case 'h':
         m_buf.moveBackward();
         break;

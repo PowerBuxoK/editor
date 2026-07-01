@@ -25,16 +25,28 @@ public:
   ~Buffer() {};
 
   void Draw(WINDOW *win) {
-    size_t view_line_start =
-        m_buf.FindLineStart(std::min(m_buf.m_front, m_view_char));
+    int cur_y, cur_x, max_y, max_x;
+    getmaxyx(win, max_y, max_x);
+    {
+      size_t glob_view_line = m_buf.GetLine(m_view_char);
+      if (cursor_y < glob_view_line) {
+        m_view_char = m_buf.m_front;
+      } else if (cursor_y - glob_view_line + 1 >= max_y) {
+        m_view_char = m_buf.FindLineStart(m_view_char);
+        m_view_char += m_buf.LineLength(m_view_char) + 1;
+      }
+      glob_view_line = m_buf.GetLine(m_view_char);
+      cursor_x_vis = cursor_x;
+      cursor_y_vis = cursor_y - glob_view_line;
+    }
+    m_view_char = m_buf.FindLineStart(std::min(m_buf.m_front, m_view_char));
+    size_t line = m_buf.GetLine(m_buf.m_front);
     size_t cursor_line_start = m_buf.FindLineStart(m_buf.m_front);
     wclear(win);
     wmove(win, 0, 0);
 
     cchar_t complex_char;
-    int cur_y, cur_x, max_y, max_x;
-    getmaxyx(win, max_y, max_x);
-    for (size_t i = view_line_start; i < m_buf.m_total; i++) {
+    for (size_t i = m_view_char; i < m_buf.m_total; i++) {
       if (i == m_buf.m_front) {
         i += m_buf.m_gap;
         if (i >= m_buf.m_total)
@@ -44,6 +56,9 @@ public:
       getyx(win, cur_y, cur_x);
 
       if (m_buf.m_data[i] == L'\n') {
+        if (cur_y + 1 >= max_y) {
+          break;
+        }
         wmove(win, cur_y + 1, 0);
         continue;
       }
@@ -62,10 +77,6 @@ public:
       setcchar(&complex_char, wch_str, WA_NORMAL, 0, NULL);
       wadd_wch(win, &complex_char);
     }
-
-    wmove(win, cursor_y - m_buf.GetLine(view_line_start) + 1, cursor_x);
-    cursor_x_vis = cursor_x;
-    cursor_y_vis = cursor_y - m_buf.GetLine(view_line_start);
   };
 
   void UpdateCursorData() {
@@ -121,6 +132,7 @@ public:
     int32_t i = 0;
     int32_t length = static_cast<int32_t>(utf8_content.length());
 
+    m_buf.Clean();
     while (i < length) {
       UChar32 c;
       U8_NEXT(utf8_content.c_str(), i, length, c);
@@ -132,15 +144,22 @@ public:
       m_buf.insertChar(static_cast<wchar_t>(c));
     }
 
+    m_buf.moveCursor(-m_buf.size());
     m_editable = true;
     return true;
   }
   bool Save() {
-    // std::ofstream myfile(m_path);
-    // myfile.open("example.txt");
-    // myfile << "Writing this to a file.\n";
-    // myfile.close();
-    return false;
+    if (!m_path) {
+      return false;
+    }
+    std::ofstream file(m_path.value(), std::ios::binary);
+    if (!file.is_open()) {
+      m_buf.SetText(std::format(L"Not able to open file \"{}\"",
+                                Utf8ToWstringICU(m_path.value())));
+      return false;
+    }
+    file << WstringToUtf8ICU(m_buf.GetString());
+    return true;
   }
 
   GapBuffer m_buf;
