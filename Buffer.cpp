@@ -18,7 +18,7 @@ bool Buffer::HandleMacro(const size_t quantifier, const std::wstring& macro)
       m_app.m_cur_mode = Mode::insert;
       break;
     case 'A':
-      m_buf.moveCursor(m_buf.FindLineStart(m_buf.m_front) - m_buf.m_front + m_buf.LineLength(m_buf.FindLineStart(m_buf.m_front)));
+      m_buf.moveCursor(m_buf.LineLength(m_buf.m_front));
       m_app.m_cur_mode = Mode::insert;
       break;
     case 'i':
