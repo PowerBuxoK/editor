@@ -87,18 +87,24 @@ void App::Draw()
         L"HELP [NORMAL MODE]: \n"
         "hjkl  -  move a - append A - append at EOL : - "
         "command mode\n"
-        "arrows - move i - insert I - [nop]");
+        "arrows - move i - insert I - Insert at SOL");
     break;
   case Mode::command:
     m_help_window->m_buf->m_buf.SetText(L"HELP [COMMAND MODE]: \n"
                                         ":w [filename] - save :q - quit\n"
                                         ":o [filename] - open");
     break;
+  case Mode::insert:
+    m_help_window->m_buf->m_buf.SetText(L"HELP [INSERT MODE]: \n"
+                                        "Type to insert text. Press ESC to return to normal mode.\n"
+                                        "Backspace to delete characters. Use arrow keys to navigate.");
+    break;
   default:
     m_help_window->m_buf->m_buf.SetText(
         L"HELP : Not avaliable for current mode\n");
   }
   m_manager.Draw();
+  
 };
 
 void App::HandleKeypress(const int res, const wint_t c)
@@ -183,6 +189,7 @@ void App::HandleNormalMode(const int res, const wint_t c)
     case 'k':
     case 'l':
     case 'i':
+    case 'I':
     case 'a':
     case 'x':
     case 'X':
@@ -311,7 +318,15 @@ void App::PushCommandBuffer(const std::wstring &str)
   }
 }
 
-void App::OpenFile(std::string path) {};
+void App::OpenFile(std::string path) {
+      if (m_windows.size() <= m_focus)
+    {
+      return;
+    }
+
+    m_windows.at(m_focus).m_buf->setFilepath(path);
+    m_windows.at(m_focus).m_buf->Read();
+};
 
 void App::UpdateData()
 {
