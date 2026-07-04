@@ -25,6 +25,11 @@ add_executable(editor
 	./main.cpp
 	./Buffer.cpp
 	./UTFHelpers.cpp
+  ./GapBuffer.cpp
+  ./App.cpp
+  ./Manager.cpp
+  ./Window.cpp
+  ./Buffer.cpp
 )
 
 target_compile_definitions(editor PRIVATE NCURSES_WIDECHAR=1)
