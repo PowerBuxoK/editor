@@ -6,53 +6,35 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project(editor)
 
-find_package(ICU COMPONENTS i18n io uc REQUIRED)
+find_package(ICU COMPONENTS i18n io uc)
+set(CURSES_NEED_NCURSES TRUE)
+set(CURSES_NEED_WIDE TRUE)
+find_package(Curses)
+
+if(Curses_FOUND AND NOT TARGET Curses::Curses)
+  add_library(Curses::Curses INTERFACE IMPORTED)
+  set_target_properties(
+    Curses::Curses
+    PROPERTIES
+      INTERFACE_LINK_LIBRARIES "${CURSES_LIBRARIES}"
+      INTERFACE_INCLUDE_DIRECTORIES "${CURSES_INCLUDE_DIRS}"
+  )
+endif()
 
 add_executable(editor
-    ./main.cpp
-    ./Buffer.cpp
-    ./UTFHelpers.cpp
+	./main.cpp
+	./Buffer.cpp
+	./UTFHelpers.cpp
 )
 
-target_include_directories(editor PRIVATE ./include/)
+target_compile_definitions(editor PRIVATE NCURSES_WIDECHAR=1)
 
-if(WIN32)
-    find_path(PDCURSES_INCLUDE_DIR 
-        NAMES curses.h
-        DOC "Path to PDCurses include directory"
-    )
-    find_library(PDCURSES_LIBRARY 
-        NAMES pdcurses
-        DOC "Path to PDCurses library"
-    )
-
-    if(NOT PDCURSES_INCLUDE_DIR OR NOT PDCURSES_LIBRARY)
-        message(FATAL_ERROR "PDCursesMod not found!")
-    endif()
-
-    target_include_directories(editor PRIVATE ${PDCURSES_INCLUDE_DIR})
-    target_link_libraries(editor PRIVATE ${PDCURSES_LIBRARY})
-
-    target_compile_definitions(editor PRIVATE PDC_WIDE)
-
+if(IS_DIRECTORY "${CURSES_INCLUDE_DIRS}/ncurses")
+	target_include_directories(editor PRIVATE ./include/ ${CURSES_INCLUDE_DIRS}/ncurses)
 else()
-    set(CURSES_NEED_NCURSES TRUE)
-    set(CURSES_NEED_WIDE TRUE)
-    find_package(Curses REQUIRED)
-
-    if(Curses_FOUND AND NOT TARGET Curses::Curses)
-      add_library(Curses::Curses INTERFACE IMPORTED)
-      set_target_properties(
-        Curses::Curses
-        PROPERTIES
-          INTERFACE_LINK_LIBRARIES "${CURSES_LIBRARIES}"
-          INTERFACE_INCLUDE_DIRECTORIES "${CURSES_INCLUDE_DIRS}"
-      )
-    endif()
-
-    target_link_libraries(editor PRIVATE Curses::Curses)
-    
-    target_compile_definitions(editor PRIVATE NCURSES_WIDECHAR=1)
+	target_include_directories(editor PRIVATE ./include/)
 endif()
 
 target_link_libraries(editor PRIVATE ICU::i18n ICU::io ICU::uc)
+target_link_libraries(editor PRIVATE Curses::Curses)
+
