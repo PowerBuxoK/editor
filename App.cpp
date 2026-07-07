@@ -1,5 +1,10 @@
 #include "App.h"
 #include "Defines.h"
+#include <curses.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 App::App() : m_manager(m_windows)
 {
@@ -63,12 +68,57 @@ void App::run()
   while(!m_stop)
   {
     UpdateData();
+    // Windows stuff
+    if(CheckForResize())
+      RecalculateLayout();
     Draw();
     UpdateCursor();
     HandleInput();
     UpdateCursor();
   }
 };
+
+void App::RecalculateLayout()
+{
+  int max_y, max_x;
+  getmaxyx(stdscr, max_y, max_x);
+
+  clear();
+
+  // Editor window
+  {
+    Window& v = m_windows[0];
+    v.layer   = 0;
+
+    v.m_x      = 0;
+    v.m_y      = 0;
+    v.m_width  = max_x;
+    v.m_height = max_y - 3;
+  }
+  // Data window
+  {
+    m_data_window->m_x      = 0;
+    m_data_window->m_y      = max_y - 3;
+    m_data_window->m_width  = max_x / 8;
+    m_data_window->m_height = 3;
+  }
+  // Mode & command
+  {
+    m_mode_window->m_x      = max_x / 8;
+    m_mode_window->m_y      = max_y - 3;
+    m_mode_window->m_width  = max_x / 4;
+    m_mode_window->m_height = 3;
+  }
+  // Help
+  {
+    m_help_window->m_x      = max_x / 4 + max_x / 8;
+    m_help_window->m_y      = max_y - 3;
+    m_help_window->m_width  = max_x - max_x / 4 + max_x / 8;
+    m_help_window->m_height = 3;
+  }
+  Draw();
+  UpdateCursor();
+}
 
 InputKeypress ReadKeypress(WINDOW* win)
 {
@@ -113,11 +163,55 @@ InputKeypress ReadKeypress(WINDOW* win)
   return result;
 }
 
+// Purely windows stuff2
+bool App::CheckForResize()
+{
+#ifdef _WIN32
+  static HANDLE hConOut = CreateFileA(
+      "CONOUT$",
+      GENERIC_READ | GENERIC_WRITE,
+      FILE_SHARE_READ | FILE_SHARE_WRITE,
+      NULL, OPEN_EXISTING, 0, NULL);
+
+  CONSOLE_SCREEN_BUFFER_INFO csbi;
+  if(hConOut != INVALID_HANDLE_VALUE && GetConsoleScreenBufferInfo(hConOut, &csbi))
+  {
+    int current_cols  = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+    int current_lines = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+
+    if(current_cols != COLS || current_lines != LINES)
+    {
+      resizeterm(current_lines, current_cols);
+      return true;
+    }
+  }
+#endif
+  return false;
+}
+
+bool App::HandleSpecialKeycodes(const InputKeypress& kp)
+{
+  if(kp.type == KEY_CODE_YES)
+  {
+    switch(kp.ch)
+    {
+      case KEY_RESIZE:
+        RecalculateLayout();
+        return true;
+        break;
+    }
+  }
+  return false;
+}
+
 void App::HandleInput()
 {
-  wint_t c;
   InputKeypress kp = ReadKeypress(stdscr);
+  if(kp.ch == 0)
+    return;
   if(kp.type == ERR)
+    return;
+  if(HandleSpecialKeycodes(kp))
     return;
   HandleKeypress(kp);
 };

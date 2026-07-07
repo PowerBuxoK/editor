@@ -14,6 +14,7 @@ int main(int argc, char* argv[])
   cbreak();
   noecho();
   keypad(stdscr, TRUE);
+  timeout(50);
 
   refresh();
 

@@ -27,9 +27,12 @@ public:
   void HandleKeypress(const InputKeypress& kp);
   void HandleCommandMode(const InputKeypress& kp);
   void HandleNormalMode(const InputKeypress& kp);
+  bool HandleSpecialKeycodes(const InputKeypress& kp);
+  bool CheckForResize();
   void TryExecuteCommand();
   std::wstring HandleCommand(const std::wstring& cmd, const std::wstring& arg);
   void TryExecuteMacro();
+  void RecalculateLayout();
   void PushCommandBuffer(const std::wstring& str);
   void OpenFile(std::string path);
   void UpdateData();
@@ -51,4 +54,5 @@ private:
   std::wstring last_cmd;
   GapBuffer m_command_buffer;
   Manager m_manager;
+  int max_x = 0, max_y = 0;
 };

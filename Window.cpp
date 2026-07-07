@@ -13,7 +13,7 @@ void Window::Draw()
   win = newwin(m_height, m_width, m_y, m_x);
   m_buf->Draw(win);
 
-  wrefresh(win);
+  wnoutrefresh(win);
   delwin(win);
 };
 
