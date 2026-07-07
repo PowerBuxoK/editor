@@ -10,4 +10,5 @@ struct InputKeypress
 {
   int type;
   int ch;
+  char utf8_str[5];
 };

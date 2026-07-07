@@ -70,11 +70,53 @@ void App::run()
   }
 };
 
+InputKeypress ReadKeypress(WINDOW* win)
+{
+  InputKeypress result = { 0, 0, "" };
+
+  int c = wgetch(win);
+
+  if(c == ERR)
+    return result;
+
+  if(c > 0xFF)
+  {
+    result.type = 1;
+    result.ch   = c;
+    return result;
+  }
+
+  result.utf8_str[0] = (char)c;
+  int len            = 1;
+
+  if((c & 0x80) != 0)
+  {
+    int next_ch;
+    while(len < 4 && (next_ch = wgetch(win)) != ERR)
+    {
+      if((next_ch & 0xC0) != 0x80)
+      {
+        ungetch(next_ch);
+        break;
+      }
+      result.utf8_str[len++] = (char)next_ch;
+    }
+  }
+  result.utf8_str[len] = '\0';
+
+  int32_t i = 0;
+  U8_NEXT(result.utf8_str, i, len, result.ch);
+
+  if(result.ch < 0)
+    result.ch = (uint8_t)c;
+
+  return result;
+}
+
 void App::HandleInput()
 {
   wint_t c;
-  InputKeypress kp;
-  kp.type = get_wch((wint_t*)(&kp.ch));
+  InputKeypress kp = ReadKeypress(stdscr);
   if(kp.type == ERR)
     return;
   HandleKeypress(kp);
