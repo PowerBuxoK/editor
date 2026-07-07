@@ -1,4 +1,5 @@
 #include "App.h"
+#include "Defines.h"
 
 App::App() : m_manager(m_windows)
 {
@@ -72,10 +73,11 @@ void App::run()
 void App::HandleInput()
 {
   wint_t c;
-  int res = get_wch(&c);
-  if(res == ERR)
+  InputKeypress kp;
+  kp.type = get_wch((wint_t*)(&kp.ch));
+  if(kp.type == ERR)
     return;
-  HandleKeypress(res, c);
+  HandleKeypress(kp);
 };
 
 void App::Draw()
@@ -106,27 +108,27 @@ void App::Draw()
   m_manager.Draw();
 };
 
-void App::HandleKeypress(const int res, const wint_t c)
+void App::HandleKeypress(const InputKeypress& kp)
 {
   if(m_cur_mode == Mode::normal)
   {
-    HandleNormalMode(res, c);
+    HandleNormalMode(kp);
     return;
   }
   if(m_cur_mode == Mode::command)
   {
-    HandleCommandMode(res, c);
+    HandleCommandMode(kp);
   }
   if(m_windows.size() <= m_focus)
     return;
-  m_windows.at(m_focus).HandleInput(m_cur_mode, res, c);
+  m_windows.at(m_focus).HandleInput(m_cur_mode, kp);
 };
 
-void App::HandleCommandMode(const int res, const wint_t c)
+void App::HandleCommandMode(const InputKeypress& kp)
 {
-  if(res == KEY_CODE_YES)
+  if(kp.type == KEY_CODE_YES)
   {
-    switch(c)
+    switch(kp.ch)
     {
       case KEY_DC:
       case KEY_BACKSPACE:
@@ -142,16 +144,16 @@ void App::HandleCommandMode(const int res, const wint_t c)
   }
   else
   {
-    m_command_buffer.insertChar(c);
+    m_command_buffer.insertChar(kp.ch);
     TryExecuteCommand();
   }
 }
 
-void App::HandleNormalMode(const int res, const wint_t c)
+void App::HandleNormalMode(const InputKeypress& kp)
 {
-  if(res == KEY_CODE_YES)
+  if(kp.type == KEY_CODE_YES)
   {
-    switch(c)
+    switch(kp.ch)
     {
       case KEY_UP:
         PushCommandBuffer(L"k");
@@ -171,7 +173,7 @@ void App::HandleNormalMode(const int res, const wint_t c)
   }
   else
   {
-    switch(c)
+    switch(kp.ch)
     {
       case '1':
       case '2':
@@ -193,12 +195,12 @@ void App::HandleNormalMode(const int res, const wint_t c)
       case 'x':
       case 'X':
       case 'A':
-        m_command_buffer.insertChar(c);
+        m_command_buffer.insertChar(kp.ch);
         TryExecuteMacro();
         break;
       case ':':
         if(m_command_buffer.size() == 0)
-          m_command_buffer.insertChar(c);
+          m_command_buffer.insertChar(kp.ch);
         m_cur_mode = Mode::command;
         break;
     }

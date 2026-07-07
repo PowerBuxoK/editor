@@ -1,5 +1,6 @@
 #pragma once
 #include "Buffer.h"
+#include "Defines.h"
 
 class Window
 {
@@ -15,5 +16,5 @@ public:
   Window();
   ~Window();
   void Draw();
-  void HandleInput(const Mode mode, const int res, const wint_t c);
+  void HandleInput(const Mode mode, const InputKeypress& kp);
 };

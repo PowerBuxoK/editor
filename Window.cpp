@@ -1,4 +1,5 @@
 #include "Window.h"
+#include "Defines.h"
 
 Window::Window() {};
 Window::~Window() {};
@@ -16,9 +17,9 @@ void Window::Draw()
   delwin(win);
 };
 
-void Window::HandleInput(const Mode mode, const int res, const wint_t c)
+void Window::HandleInput(const Mode mode, const InputKeypress& kp)
 {
   if(!m_buf)
     return;
-  m_buf->HandleInput(mode, res, c);
+  m_buf->HandleInput(mode, kp);
 };

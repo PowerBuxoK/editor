@@ -24,9 +24,9 @@ public:
   void run();
   void HandleInput();
   void Draw();
-  void HandleKeypress(const int res, const wint_t c);
-  void HandleCommandMode(const int res, const wint_t c);
-  void HandleNormalMode(const int res, const wint_t c);
+  void HandleKeypress(const InputKeypress& kp);
+  void HandleCommandMode(const InputKeypress& kp);
+  void HandleNormalMode(const InputKeypress& kp);
   void TryExecuteCommand();
   std::wstring HandleCommand(const std::wstring& cmd, const std::wstring& arg);
   void TryExecuteMacro();
@@ -37,7 +37,7 @@ public:
 
   friend bool Buffer::HandleMacro(const size_t quantifier,
                                   const std::wstring& macro);
-  friend void Buffer::HandleInputInsert(const int res, const wint_t c);
+  friend void Buffer::HandleInputInsert(const InputKeypress& kp);
 
 private:
   Mode m_cur_mode  = Mode::normal;

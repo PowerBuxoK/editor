@@ -5,3 +5,9 @@ enum class Mode
   insert,
   command
 };
+
+struct InputKeypress
+{
+  int type;
+  int ch;
+};

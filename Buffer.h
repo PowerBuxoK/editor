@@ -27,9 +27,9 @@ public:
 
   void Draw(WINDOW* win);
   void UpdateCursorData();
-  void HandleInput(const Mode mode, const int res, const wint_t c);
+  void HandleInput(const Mode mode, const InputKeypress& kp);
   bool HandleMacro(const size_t quantifier, const std::wstring& macro);
-  void HandleInputInsert(const int res, const wint_t c);
+  void HandleInputInsert(const InputKeypress& kp);
 
   size_t getCursorX() const { return cursor_x; }
   size_t getCursorY() const { return cursor_y; }

@@ -68,11 +68,11 @@ bool Buffer::HandleMacro(const size_t quantifier, const std::wstring& macro)
   return true;
 };
 
-void Buffer::HandleInputInsert(const int res, const wint_t c)
+void Buffer::HandleInputInsert(const InputKeypress& kp)
 {
-  if(res == KEY_CODE_YES)
+  if(kp.type == KEY_CODE_YES)
   {
-    switch(c)
+    switch(kp.ch)
     {
       case KEY_BACKSPACE:
       case KEY_DC:
@@ -95,7 +95,7 @@ void Buffer::HandleInputInsert(const int res, const wint_t c)
   }
   else
   {
-    switch(c)
+    switch(kp.ch)
     {
       case 27:
         m_app.m_cur_mode = Mode::normal;
@@ -107,7 +107,7 @@ void Buffer::HandleInputInsert(const int res, const wint_t c)
         break;
       default:
         if(m_editable)
-          m_buf.insertChar(c);
+          m_buf.insertChar(kp.ch);
         break;
     }
   }
@@ -185,12 +185,12 @@ void Buffer::UpdateCursorData()
   cursor_y = m_buf.GetLine(m_buf.m_front);
 };
 
-void Buffer::HandleInput(const Mode mode, const int res, const wint_t c)
+void Buffer::HandleInput(const Mode mode, const InputKeypress& kp)
 {
   switch(mode)
   {
     case Mode::insert:
-      HandleInputInsert(res, c);
+      HandleInputInsert(kp);
       break;
     default:
       break;
