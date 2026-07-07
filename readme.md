@@ -11,7 +11,7 @@ A basic TUI text editor
 	- [ ] Copy
 	- [ ] Paste
 - [ ] Buffer juggling
-- [ ] Fix non-ASCII chars on Windows
+- [x] Fix non-ASCII chars on Windows
 - [ ] Fix bug with stuck render
 - [ ] Optimize it
 
