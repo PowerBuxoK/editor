@@ -1,2 +1,7 @@
 #pragma once
-enum class Mode { normal, insert, command };
+enum class Mode
+{
+  normal,
+  insert,
+  command
+};

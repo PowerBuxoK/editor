@@ -9,8 +9,8 @@ public:
   unsigned int m_width, m_height;
   std::wstring name = L"Unnamed";
 
-  Buffer *m_buf = nullptr;
-  int layer = 0;
+  Buffer* m_buf = nullptr;
+  int layer     = 0;
 
   Window();
   ~Window();

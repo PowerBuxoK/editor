@@ -28,26 +28,26 @@ public:
   void HandleCommandMode(const int res, const wint_t c);
   void HandleNormalMode(const int res, const wint_t c);
   void TryExecuteCommand();
-  std::wstring HandleCommand(const std::wstring &cmd, const std::wstring &arg);
+  std::wstring HandleCommand(const std::wstring& cmd, const std::wstring& arg);
   void TryExecuteMacro();
-  void PushCommandBuffer(const std::wstring &str);
+  void PushCommandBuffer(const std::wstring& str);
   void OpenFile(std::string path);
   void UpdateData();
   void UpdateCursor();
 
   friend bool Buffer::HandleMacro(const size_t quantifier,
-                                  const std::wstring &macro);
+                                  const std::wstring& macro);
   friend void Buffer::HandleInputInsert(const int res, const wint_t c);
 
 private:
-  Mode m_cur_mode = Mode::normal;
+  Mode m_cur_mode  = Mode::normal;
   uint64_t m_focus = 0;
-  bool m_stop = false;
+  bool m_stop      = false;
   std::deque<Buffer> m_buffers;
   std::deque<Window> m_windows;
-  Window *m_data_window = nullptr;
-  Window *m_mode_window = nullptr;
-  Window *m_help_window = nullptr;
+  Window* m_data_window = nullptr;
+  Window* m_mode_window = nullptr;
+  Window* m_help_window = nullptr;
   std::wstring last_cmd;
   GapBuffer m_command_buffer;
   Manager m_manager;

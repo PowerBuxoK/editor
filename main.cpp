@@ -2,7 +2,8 @@
 #include <argparser/argparser.cpp>
 #include <ncurses.h>
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[])
+{
 
   arp::Argparser ap(argc, argv);
   ap.parse();
@@ -17,7 +18,8 @@ int main(int argc, char *argv[]) {
   refresh();
 
   App app;
-  for (auto &filepath : ap.getPositionalArgs()) {
+  for(auto& filepath : ap.getPositionalArgs())
+  {
     app.OpenFile(filepath);
   }
   app.run();

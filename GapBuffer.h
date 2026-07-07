@@ -5,7 +5,8 @@
 #include <iostream>
 #include <string>
 
-class GapBuffer {
+class GapBuffer
+{
 public:
   GapBuffer();
   ~GapBuffer();
@@ -23,19 +24,23 @@ public:
   size_t GetLine(size_t id);
   void Clean();
   size_t size();
-  void SetText(const std::wstring &str);
+  void SetText(const std::wstring& str);
   std::wstring GetString();
 
-  wchar_t operator[](size_t i) {
-    if (i < m_front) {
+  wchar_t operator[](size_t i)
+  {
+    if(i < m_front)
+    {
       return m_data[i];
-    } else {
+    }
+    else
+    {
       return m_data[i + m_gap];
     }
   }
 
-  size_t m_total = 0;
-  size_t m_front = 0;
-  size_t m_gap = 0;
-  wchar_t *m_data = nullptr;
+  size_t m_total  = 0;
+  size_t m_front  = 0;
+  size_t m_gap    = 0;
+  wchar_t* m_data = nullptr;
 };

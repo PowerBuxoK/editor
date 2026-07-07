@@ -5,14 +5,14 @@
 #include <ncurses.h>
 #include <vector>
 
-class Manager {
+class Manager
+{
 public:
-  Manager(std::deque<Window> &windows);
+  Manager(std::deque<Window>& windows);
   ~Manager();
 
   void Draw();
-    
 
 private:
-  std::deque<Window> &m_windows;
+  std::deque<Window>& m_windows;
 };
