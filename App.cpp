@@ -81,7 +81,7 @@ InputKeypress ReadKeypress(WINDOW* win)
 
   if(c > 0xFF)
   {
-    result.type = 1;
+    result.type = KEY_CODE_YES;
     result.ch   = c;
     return result;
   }
