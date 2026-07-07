@@ -237,6 +237,11 @@ void App::Draw()
                                           "Type to insert text. Press ESC to return to normal mode.\n"
                                           "Backspace to delete characters. Use arrow keys to navigate.");
       break;
+    case Mode::visual:
+      m_help_window->m_buf->m_buf.SetText(L"HELP [VISUAL MODE]: \n"
+                                          "hjkl / arrows - select text. ESC - return to normal mode.\n"
+                                          "y - copy selected text.");
+      break;
     default:
       m_help_window->m_buf->m_buf.SetText(
           L"HELP : Not avaliable for current mode\n");
@@ -331,6 +336,10 @@ void App::HandleNormalMode(const InputKeypress& kp)
       case 'x':
       case 'X':
       case 'A':
+      case 'y':
+      case 'p':
+      case 'P':
+      case 'v':
         m_command_buffer.insertChar(kp.ch);
         TryExecuteMacro();
         break;
@@ -483,6 +492,9 @@ void App::UpdateData()
       break;
     case Mode::normal:
       cur_mode = L"NORMAL";
+      break;
+    case Mode::visual: 
+      cur_mode = L"VISUAL";
       break;
   };
   auto vis_cmd = m_command_buffer.GetString();

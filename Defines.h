@@ -3,7 +3,8 @@ enum class Mode
 {
   normal,
   insert,
-  command
+  command,
+  visual
 };
 
 struct InputKeypress

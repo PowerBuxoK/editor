@@ -41,9 +41,12 @@ public:
   friend bool Buffer::HandleMacro(const size_t quantifier,
                                   const std::wstring& macro);
   friend void Buffer::HandleInputInsert(const InputKeypress& kp);
+  friend void Buffer::HandleInputVisual(const InputKeypress& kp);
+
+  std::wstring m_clipboard;
+  Mode m_cur_mode  = Mode::normal;
 
 private:
-  Mode m_cur_mode  = Mode::normal;
   uint64_t m_focus = 0;
   bool m_stop      = false;
   std::deque<Buffer> m_buffers;

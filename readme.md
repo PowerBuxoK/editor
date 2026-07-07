@@ -6,10 +6,10 @@ A basic TUI text editor
 
 ### Urgent
 
-- [ ] Secetion-copy-pase
-	- [ ] Visual (selection mode)
-	- [ ] Copy
-	- [ ] Paste
+- [x] Secetion-copy-pase
+	- [x] Visual (selection mode)
+	- [x] Copy
+	- [x] Paste
 - [ ] Buffer juggling
 - [x] Fix non-ASCII chars on Windows
 - [ ] Fix bug with stuck render
@@ -17,7 +17,7 @@ A basic TUI text editor
 
 ### Less-than-urgent
 
-- [ ] Add automatic layout adjustment
+- [x] Add automatic layout adjustment
 - [ ] Add buffer opening with command line arguments
 
 ### Optional

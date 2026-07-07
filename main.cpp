@@ -4,7 +4,6 @@
 
 int main(int argc, char* argv[])
 {
-
   arp::Argparser ap(argc, argv);
   ap.parse();
 

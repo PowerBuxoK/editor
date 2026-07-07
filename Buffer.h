@@ -30,6 +30,7 @@ public:
   void HandleInput(const Mode mode, const InputKeypress& kp);
   bool HandleMacro(const size_t quantifier, const std::wstring& macro);
   void HandleInputInsert(const InputKeypress& kp);
+  void HandleInputVisual(const InputKeypress& kp);
 
   size_t getCursorX() const { return cursor_x; }
   size_t getCursorY() const { return cursor_y; }
@@ -53,4 +54,5 @@ private:
   App& m_app;
   bool m_enable_wrapping = false;
   bool m_editable        = true;
+  size_t m_visual_start_char = 0;
 };
