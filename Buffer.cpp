@@ -28,30 +28,9 @@ bool Buffer::HandleMacro(const size_t quantifier, const std::wstring& macro)
       m_buf.moveCursor(m_buf.FindLineStart(m_buf.m_front) - m_buf.m_front);
       m_app.m_cur_mode = Mode::insert;
       break;
-      case 'v': 
-      m_app.m_cur_mode         = Mode::visual;
-      m_visual_start_char = m_buf.m_front; 
-      break;
-    case 'p': 
-      if(!m_app.m_clipboard.empty() && m_editable)
-      {
-        for(wchar_t ch : m_app.m_clipboard)
-        {
-          m_buf.insertChar(ch);
-        }
-      }
-      break;
-    case 'P': 
-      if(!m_app.m_clipboard.empty() && m_editable)
-      {
-        if(m_buf[m_buf.m_front] != '\n')
-          m_buf.moveForward();
-        for(wchar_t ch : m_app.m_clipboard)
-        {
-          m_buf.insertChar(ch);
-        }
-        m_buf.moveBackward();
-      }
+    case 'v':
+      m_app.m_cur_mode    = Mode::visual;
+      m_visual_start_char = m_buf.m_front;
       break;
     default:
       // Executed by quantifier
@@ -59,6 +38,27 @@ bool Buffer::HandleMacro(const size_t quantifier, const std::wstring& macro)
       {
         switch(macro[0])
         {
+          case 'p':
+            if(!m_app.m_clipboard.empty() && m_editable)
+            {
+              for(wchar_t ch : m_app.m_clipboard)
+              {
+                m_buf.insertChar(ch);
+              }
+            }
+            break;
+          case 'P':
+            if(!m_app.m_clipboard.empty() && m_editable)
+            {
+              if(m_buf[m_buf.m_front] != '\n')
+                m_buf.moveForward();
+              for(wchar_t ch : m_app.m_clipboard)
+              {
+                m_buf.insertChar(ch);
+              }
+              m_buf.moveBackward();
+            }
+            break;
           case 'X':
             if(m_buf.m_front == 0 || m_buf[m_buf.m_front - 1] == L'\n')
             {
@@ -162,7 +162,7 @@ void Buffer::HandleInputVisual(const InputKeypress& kp)
   {
     switch(kp.ch)
     {
-      case 27: 
+      case 27:
         m_app.m_cur_mode = Mode::normal;
         break;
       case KEY_UP:
@@ -177,18 +177,18 @@ void Buffer::HandleInputVisual(const InputKeypress& kp)
       case KEY_RIGHT:
         m_buf.moveForward();
         break;
-      case 'y': 
+      case 'y':
+      {
+        size_t start = std::min(m_visual_start_char, m_buf.m_front);
+        size_t end   = std::max(m_visual_start_char, m_buf.m_front);
+        m_app.m_clipboard.clear();
+        for(size_t i = start; i < end; i++)
         {
-          size_t start = std::min(m_visual_start_char, m_buf.m_front);
-          size_t end   = std::max(m_visual_start_char, m_buf.m_front);
-          m_app.m_clipboard.clear();
-          for(size_t i = start; i < end; i++)
-          {
-            m_app.m_clipboard += m_buf[i];
-          }
-          m_app.m_cur_mode = Mode::normal;
+          m_app.m_clipboard += m_buf[i];
         }
-        break;
+        m_app.m_cur_mode = Mode::normal;
+      }
+      break;
     }
   }
   UpdateCursorData();
@@ -293,7 +293,7 @@ void Buffer::HandleInput(const Mode mode, const InputKeypress& kp)
     case Mode::insert:
       HandleInputInsert(kp);
       break;
-      case Mode::visual:
+    case Mode::visual:
       HandleInputVisual(kp);
       break;
     default:
