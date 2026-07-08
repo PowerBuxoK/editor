@@ -1,4 +1,5 @@
 #include "App.h"
+#include "Buffer.h"
 #include "Defines.h"
 #include <curses.h>
 
@@ -493,7 +494,7 @@ void App::UpdateData()
     case Mode::normal:
       cur_mode = L"NORMAL";
       break;
-    case Mode::visual: 
+    case Mode::visual:
       cur_mode = L"VISUAL";
       break;
   };
@@ -506,6 +507,15 @@ void App::UpdateData()
   m_mode_window->m_buf->m_buf.SetText(
       std::format(L"{:10} : {}", cur_mode, vis_cmd));
 };
+
+Window* App::GetCurrentWindow()
+{
+  if(m_windows.size() <= m_focus)
+  {
+    return nullptr;
+  }
+  return &m_windows[m_focus];
+}
 
 void App::UpdateCursor()
 {

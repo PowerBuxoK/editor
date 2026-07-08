@@ -256,7 +256,7 @@ void Buffer::Draw(WINDOW* win)
     size_t real_idx = (i < m_buf.m_front) ? i : (i - m_buf.m_gap);
 
     bool is_selected = false;
-    if(m_app.m_cur_mode == Mode::visual)
+    if(m_app.m_cur_mode == Mode::visual && m_app.GetCurrentWindow()->m_buf == this)
     {
       size_t start = std::min(m_visual_start_char, m_buf.m_front);
       size_t end   = std::max(m_visual_start_char, m_buf.m_front);

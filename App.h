@@ -37,6 +37,7 @@ public:
   void OpenFile(std::string path);
   void UpdateData();
   void UpdateCursor();
+  Window* GetCurrentWindow();
 
   friend bool Buffer::HandleMacro(const size_t quantifier,
                                   const std::wstring& macro);
@@ -44,7 +45,7 @@ public:
   friend void Buffer::HandleInputVisual(const InputKeypress& kp);
 
   std::wstring m_clipboard;
-  Mode m_cur_mode  = Mode::normal;
+  Mode m_cur_mode = Mode::normal;
 
 private:
   uint64_t m_focus = 0;
