@@ -221,34 +221,6 @@ void App::HandleInput()
 void App::Draw()
 {
   curs_set(0);
-  switch(m_cur_mode)
-  {
-    case Mode::normal:
-      m_help_window->m_buf->m_buf.SetText(
-          L"HELP [NORMAL MODE]: \n"
-          "hjkl  -  move a - append A - append at EOL : - "
-          "command mode\n"
-          "arrows - move i - insert I - Insert at SOL");
-      break;
-    case Mode::command:
-      m_help_window->m_buf->m_buf.SetText(L"HELP [COMMAND MODE]: \n"
-                                          ":w [filename] - save :q - quit\n"
-                                          ":o [filename] - open");
-      break;
-    case Mode::insert:
-      m_help_window->m_buf->m_buf.SetText(L"HELP [INSERT MODE]: \n"
-                                          "Type to insert text. Press ESC to return to normal mode.\n"
-                                          "Backspace to delete characters. Use arrow keys to navigate.");
-      break;
-    case Mode::visual:
-      m_help_window->m_buf->m_buf.SetText(L"HELP [VISUAL MODE]: \n"
-                                          "hjkl / arrows - select text. ESC - return to normal mode.\n"
-                                          "y - copy selected text.");
-      break;
-    default:
-      m_help_window->m_buf->m_buf.SetText(
-          L"HELP : Not avaliable for current mode\n");
-  }
   m_manager.Draw();
   curs_set(2);
 };
@@ -490,16 +462,34 @@ void App::UpdateData()
   {
     case Mode::insert:
       cur_mode = L"INSERT";
+      m_help_window->m_buf->m_buf.SetText(L"HELP [INSERT MODE]: \n"
+                                          "Type to insert text. Press ESC to return to normal mode.\n"
+                                          "Backspace to delete characters. Use arrow keys to navigate.");
       break;
     case Mode::command:
       cur_mode = L"COMMAND";
+      m_help_window->m_buf->m_buf.SetText(L"HELP [COMMAND MODE]: \n"
+                                          ":w [filename] - save :q - quit\n"
+                                          ":o [filename] - open");
       break;
     case Mode::normal:
+      m_help_window->m_buf->m_buf.SetText(
+          L"HELP [NORMAL MODE]: \n"
+          "hjkl  -  move a - append A - append at EOL : - "
+          "command mode\n"
+          "arrows - move i - insert I - Insert at SOL");
       cur_mode = L"NORMAL";
+
       break;
     case Mode::visual:
       cur_mode = L"VISUAL";
+      m_help_window->m_buf->m_buf.SetText(L"HELP [VISUAL MODE]: \n"
+                                          "hjkl / arrows - select text. ESC - return to normal mode.\n"
+                                          "y - copy selected text.");
       break;
+    default:
+      m_help_window->m_buf->m_buf.SetText(
+          L"HELP : Not avaliable for current mode\n");
   };
   auto vis_cmd = m_command_buffer.GetString();
   if(vis_cmd.size() == 0)
