@@ -73,7 +73,6 @@ void App::run()
     if(CheckForResize())
       RecalculateLayout();
     Draw();
-    UpdateCursor();
     HandleInput();
     UpdateCursor();
   }
@@ -219,6 +218,7 @@ void App::HandleInput()
 
 void App::Draw()
 {
+  curs_set(0);
   switch(m_cur_mode)
   {
     case Mode::normal:
@@ -248,6 +248,7 @@ void App::Draw()
           L"HELP : Not avaliable for current mode\n");
   }
   m_manager.Draw();
+  curs_set(2);
 };
 
 void App::HandleKeypress(const InputKeypress& kp)
@@ -523,5 +524,5 @@ void App::UpdateCursor()
     return;
   Window& cur_wnd = m_windows.at(m_focus);
   cur_wnd.m_buf->UpdateCursorData();
-  move(cur_wnd.m_buf->visualCursorY(), cur_wnd.m_buf->visualCursorX());
+  move(cur_wnd.m_buf->visualCursorY() + cur_wnd.m_y, cur_wnd.m_buf->visualCursorX() + cur_wnd.m_x);
 };
