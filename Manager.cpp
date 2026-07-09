@@ -28,6 +28,4 @@ void Manager::Draw()
   {
     v->Draw();
   }
-
-  doupdate();
 };

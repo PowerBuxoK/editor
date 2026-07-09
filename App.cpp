@@ -75,6 +75,8 @@ void App::run()
     Draw();
     HandleInput();
     UpdateCursor();
+
+    doupdate();
   }
 };
 
@@ -524,5 +526,10 @@ void App::UpdateCursor()
     return;
   Window& cur_wnd = m_windows.at(m_focus);
   cur_wnd.m_buf->UpdateCursorData();
+
+  WINDOW* win;
+  win = newwin(cur_wnd.m_y, cur_wnd.m_x, cur_wnd.m_height, cur_wnd.m_width);
   move(cur_wnd.m_buf->visualCursorY() + cur_wnd.m_y, cur_wnd.m_buf->visualCursorX() + cur_wnd.m_x);
+  wnoutrefresh(win);
+  delwin(win);
 };
