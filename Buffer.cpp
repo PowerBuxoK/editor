@@ -39,6 +39,8 @@ bool Buffer::HandleMacro(const size_t quantifier, const std::wstring& macro)
         switch(macro[0])
         {
           case 'p':
+            if(!m_editable)
+              break;
             if(!m_app.m_clipboard.empty() && m_editable)
             {
               for(wchar_t ch : m_app.m_clipboard)
@@ -48,6 +50,8 @@ bool Buffer::HandleMacro(const size_t quantifier, const std::wstring& macro)
             }
             break;
           case 'P':
+            if(!m_editable)
+              break;
             if(!m_app.m_clipboard.empty() && m_editable)
             {
               if(m_buf[m_buf.m_front] != '\n')
@@ -60,6 +64,8 @@ bool Buffer::HandleMacro(const size_t quantifier, const std::wstring& macro)
             }
             break;
           case 'X':
+            if(!m_editable)
+              break;
             if(m_buf.m_front == 0 || m_buf[m_buf.m_front - 1] == L'\n')
             {
               break;
@@ -67,10 +73,10 @@ bool Buffer::HandleMacro(const size_t quantifier, const std::wstring& macro)
             m_buf.deleteChar();
             break;
           case 'x':
-            if(m_buf.m_front == m_buf.size() || m_buf[m_buf.m_front] == L'\n')
-            {
+            if(!m_editable)
               break;
-            }
+            if(m_buf.m_front == m_buf.size() || m_buf[m_buf.m_front] == L'\n')
+              break;
             m_buf.moveForward();
             m_buf.deleteChar();
             break;
@@ -165,17 +171,17 @@ void Buffer::HandleInputVisual(const InputKeypress& kp)
       case 27:
         m_app.m_cur_mode = Mode::normal;
         break;
-      case KEY_UP:
-        m_buf.moveUp(cursor_x);
-        break;
-      case KEY_DOWN:
-        m_buf.moveDown(cursor_x);
-        break;
-      case KEY_LEFT:
+      case 'h':
         m_buf.moveBackward();
         break;
-      case KEY_RIGHT:
+      case 'l':
         m_buf.moveForward();
+        break;
+      case 'j':
+        m_buf.moveDown(cursor_x);
+        break;
+      case 'k':
+        m_buf.moveUp(cursor_x);
         break;
       case 'y':
       {
