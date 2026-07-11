@@ -59,4 +59,6 @@ private:
   GapBuffer m_command_buffer;
   Manager m_manager;
   int max_x = 0, max_y = 0;
+  size_t m_next_buffer_id = 0;
+  std::vector<Buffer*> GetUserBuffers();
 };

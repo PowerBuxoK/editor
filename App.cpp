@@ -1,6 +1,7 @@
 #include "App.h"
 #include "Buffer.h"
 #include "Defines.h"
+#include <algorithm>
 #include <curses.h>
 
 #ifdef _WIN32
@@ -23,6 +24,7 @@ App::App() : m_manager(m_windows)
     v.m_height  = max_y - 3;
     v.name      = L"Editor";
     Buffer& buf = m_buffers.emplace_back(*this);
+    buf.m_id    = m_next_buffer_id++;
     v.m_buf     = &buf;
   }
   // Data window
@@ -35,6 +37,7 @@ App::App() : m_manager(m_windows)
     m_data_window->m_height = 3;
     m_data_window->name     = L"Cursor state";
     Buffer& buf             = m_buffers.emplace_back(*this);
+    buf.m_is_user_buffer    = false;
     m_data_window->m_buf    = &buf;
   }
   // Mode & command
@@ -47,6 +50,7 @@ App::App() : m_manager(m_windows)
     m_mode_window->m_height = 3;
     m_mode_window->name     = L"Mode & command";
     Buffer& buf             = m_buffers.emplace_back(*this);
+    buf.m_is_user_buffer    = false;
     m_mode_window->m_buf    = &buf;
   }
   // Help
@@ -59,6 +63,7 @@ App::App() : m_manager(m_windows)
     m_help_window->m_height = 3;
     m_help_window->name     = L"Help";
     Buffer& buf             = m_buffers.emplace_back(*this);
+    buf.m_is_user_buffer    = false;
     m_help_window->m_buf    = &buf;
   }
 };
@@ -373,15 +378,14 @@ std::wstring App::HandleCommand(const std::wstring& cmd, const std::wstring& arg
       return L"No buffer!";
     }
 
-    m_windows.at(m_focus).m_buf->setFilepath(WstringToUtf8ICU(arg));
-    if(m_windows.at(m_focus).m_buf->Read())
-    {
-      return L"SUCCESS";
-    }
-    else
-    {
-      return L"FAIL";
-    }
+    Buffer& new_buf = m_buffers.emplace_back(*this);
+    new_buf.m_id    = m_next_buffer_id++;
+    new_buf.setFilepath(WstringToUtf8ICU(arg));
+    bool ok = new_buf.Read();
+
+    m_windows.at(m_focus).m_buf = &new_buf;
+
+    return ok ? L"SUCCESS" : L"FAIL";
   }
   if(cmd == L"q")
   {
@@ -392,6 +396,33 @@ std::wstring App::HandleCommand(const std::wstring& cmd, const std::wstring& arg
   {
     return std::format(L"{}", std::filesystem::current_path().wstring());
   }
+  if(cmd == L"bn" || cmd == L"bp")
+  {
+    if(m_windows.size() <= m_focus)
+    {
+      return L"No buffer!";
+    }
+
+    auto user_buffers = GetUserBuffers();
+    if(user_buffers.empty())
+    {
+      return L"No buffers open";
+    }
+
+    auto it    = std::find(user_buffers.begin(), user_buffers.end(),
+                           m_windows.at(m_focus).m_buf);
+    size_t idx = (it != user_buffers.end())
+                     ? std::distance(user_buffers.begin(), it)
+                     : 0;
+
+    size_t new_idx = (cmd == L"bn")
+                         ? (idx + 1) % user_buffers.size()
+                         : (idx + user_buffers.size() - 1) % user_buffers.size();
+
+    m_windows.at(m_focus).m_buf = user_buffers[new_idx];
+    return L"SUCCESS";
+  }
+
   return L"No cmd found";
 }
 
@@ -439,13 +470,16 @@ void App::PushCommandBuffer(const std::wstring& str)
 
 void App::OpenFile(std::string path)
 {
+  Buffer& new_buf = m_buffers.emplace_back(*this);
+  new_buf.m_id    = m_next_buffer_id++;
+  new_buf.setFilepath(path);
+  new_buf.Read();
+
   if(m_windows.size() <= m_focus)
   {
     return;
   }
-
-  m_windows.at(m_focus).m_buf->setFilepath(path);
-  m_windows.at(m_focus).m_buf->Read();
+  m_windows.at(m_focus).m_buf = &new_buf;
 };
 
 void App::UpdateData()
@@ -453,9 +487,35 @@ void App::UpdateData()
   if(m_windows.size() <= m_focus)
     return;
   Window& cur_wnd = m_windows.at(m_focus);
-  m_data_window->m_buf->m_buf.SetText(
-      std::format(L"{}:{}\nW:{}", cur_wnd.m_buf->getCursorY(),
-                  cur_wnd.m_buf->getCursorX(), cur_wnd.name));
+
+  std::wstring buf_line;
+  {
+    auto user_buffers = GetUserBuffers();
+    Window& cur_wnd   = m_windows.at(m_focus);
+    auto it           = std::find(user_buffers.begin(), user_buffers.end(), cur_wnd.m_buf);
+
+    if(it != user_buffers.end())
+    {
+      size_t idx = std::distance(user_buffers.begin(), it);
+      size_t n   = user_buffers.size();
+
+      buf_line = std::format(L"[{}]", user_buffers[idx]->getDisplayName());
+
+      if(n > 1)
+      {
+        size_t next_idx = (idx + 1) % n;
+        buf_line        = std::format(L"{}  {}", buf_line, user_buffers[next_idx]->getDisplayName());
+      }
+      if(n > 2)
+      {
+        size_t prev_idx = (idx + n - 1) % n;
+        buf_line        = std::format(L"{}  {}", user_buffers[prev_idx]->getDisplayName(), buf_line);
+      }
+    }
+    m_data_window->m_buf->m_buf.SetText(
+        std::format(L"{}:{}\nW:{}", cur_wnd.m_buf->getCursorY(),
+                    cur_wnd.m_buf->getCursorX(), cur_wnd.name));
+  }
 
   std::wstring cur_mode;
   switch(m_cur_mode)
@@ -523,3 +583,16 @@ void App::UpdateCursor()
   wnoutrefresh(win);
   delwin(win);
 };
+
+std::vector<Buffer*> App::GetUserBuffers()
+{
+  std::vector<Buffer*> result;
+  for(auto& b : m_buffers)
+  {
+    if(b.m_is_user_buffer)
+    {
+      result.emplace_back(&b);
+    }
+  }
+  return result;
+}

@@ -367,3 +367,12 @@ bool Buffer::Save()
   file << WstringToUtf8ICU(m_buf.GetString());
   return true;
 };
+
+std::wstring Buffer::getDisplayName() const
+{
+  if(!m_path)
+  {
+    return L"[No Name]";
+  }
+  return Utf8ToWstringICU(std::filesystem::path(m_path.value()).filename().string());
+}

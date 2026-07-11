@@ -43,7 +43,11 @@ public:
   bool Save();
 
   GapBuffer m_buf;
+  bool m_is_user_buffer = true;
+  size_t m_id           = 0;
 
+  std::wstring getDisplayName() const;
+  
 private:
   size_t cursor_x     = 0;
   size_t cursor_y     = 0;
