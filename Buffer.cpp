@@ -107,8 +107,13 @@ void Buffer::HandleInputInsert(const InputKeypress& kp)
     {
       case KEY_BACKSPACE:
       case KEY_DC:
-        if(m_editable)
+        if(m_editable && m_buf.m_front > 0)
+        {
+          size_t delete_pos = m_buf.m_front - 1;
+          wchar_t deleted_ch = m_buf.m_data[delete_pos < m_buf.m_front ? delete_pos : delete_pos + m_buf.m_gap];
           m_buf.deleteChar();
+          RecordAction(EditActionType::Delete, delete_pos, deleted_ch);
+        }
         break;
       case KEY_UP:
         m_buf.moveUp(cursor_x);
@@ -133,12 +138,21 @@ void Buffer::HandleInputInsert(const InputKeypress& kp)
         break;
       case 127:
       case 8:
-        if(m_editable)
+        if(m_editable && m_buf.m_front > 0)
+        {
+          size_t delete_pos = m_buf.m_front - 1;
+          wchar_t deleted_ch = m_buf.m_data[delete_pos < m_buf.m_front ? delete_pos : delete_pos + m_buf.m_gap];
           m_buf.deleteChar();
+          RecordAction(EditActionType::Delete, delete_pos, deleted_ch);
+        }
         break;
       default:
         if(m_editable)
+        {
+          size_t insert_pos = m_buf.m_front;
           m_buf.insertChar(kp.ch);
+          RecordAction(EditActionType::Insert, insert_pos, kp.ch);
+        }
         break;
     }
   }
@@ -437,5 +451,69 @@ std::wstring Buffer::getDisplayName() const
   {
     return L"[No Name]";
   }
-  return Utf8ToWstringICU(std::filesystem::path(m_path.value()).filename().string());
+  return Utf8ToWstringICU(std::filesystem::path(m_path.value()).filename().string());}
+
+void Buffer::RecordAction(EditActionType type, size_t index, wchar_t ch)
+{
+  m_undo_stack.push({type, index, ch});
+  
+  // При любом новом действии пользователя очищаем стек возврата (Redo)
+  while(!m_redo_stack.empty())
+  {
+    m_redo_stack.pop();
+  }
+}
+
+void Buffer::Undo()
+{
+  if(m_undo_stack.empty() || !m_editable)
+    return;
+
+  EditAction action = m_undo_stack.top();
+  m_undo_stack.pop();
+
+  // Перемещаем курсор к месту изменения
+  m_buf.moveCursor(static_cast<long long>(action.index) - static_cast<long long>(m_buf.m_front));
+
+  if(action.type == EditActionType::Insert)
+  {
+    // Если вставили символ — удаляем его (сдвинувшись вперед на него)
+    m_buf.moveForward();
+    m_buf.deleteChar();
+  }
+  else if(action.type == EditActionType::Delete)
+  {
+    // Если удалили символ — вставляем его обратно
+    m_buf.insertChar(action.ch);
+  }
+
+  m_redo_stack.push(action);
+  UpdateCursorData();
+}
+
+void Buffer::Redo()
+{
+  if(m_redo_stack.empty() || !m_editable)
+    return;
+
+  EditAction action = m_redo_stack.top();
+  m_redo_stack.pop();
+
+  // Перемещаем курсор к месту изменения
+  m_buf.moveCursor(static_cast<long long>(action.index) - static_cast<long long>(m_buf.m_front));
+
+  if(action.type == EditActionType::Insert)
+  {
+    // Повторяем вставку
+    m_buf.insertChar(action.ch);
+  }
+  else if(action.type == EditActionType::Delete)
+  {
+    // Повторяем удаление
+    m_buf.moveForward();
+    m_buf.deleteChar();
+  }
+
+  m_undo_stack.push(action);
+  UpdateCursorData();
 }

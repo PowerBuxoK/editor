@@ -362,6 +362,14 @@ void App::HandleNormalMode(const InputKeypress& kp)
         m_command_buffer.insertChar(kp.ch);
         TryExecuteMacro();
         break;
+        case 'u':
+        if(m_windows.size() > m_focus)
+          m_windows.at(m_focus).m_buf->Undo();
+        break;
+      case 18: // Ctrl + R
+        if(m_windows.size() > m_focus)
+          m_windows.at(m_focus).m_buf->Redo();
+        break;
       case ':':
         if(m_command_buffer.size() == 0)
           m_command_buffer.insertChar(kp.ch);

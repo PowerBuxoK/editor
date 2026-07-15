@@ -16,6 +16,20 @@
 #include <unicode/unistr.h>
 #include <unicode/ustream.h>
 #include <vector>
+#include <stack>
+
+enum class EditActionType
+{
+  Insert,
+  Delete
+};
+
+struct EditAction
+{
+  EditActionType type;
+  size_t index;
+  wchar_t ch;
+};
 
 class App;
 
@@ -31,6 +45,10 @@ public:
   bool HandleMacro(const size_t quantifier, const std::wstring& macro);
   void HandleInputInsert(const InputKeypress& kp);
   void HandleInputVisual(const InputKeypress& kp);
+  // void EditActionType;
+  // void EditAction;
+  void Undo();
+  void Redo();
 
   size_t getCursorX() const { return cursor_x; }
   size_t getCursorY() const { return cursor_y; }
@@ -59,4 +77,7 @@ private:
   bool m_enable_wrapping = false;
   bool m_editable        = true;
   size_t m_visual_start_char = 0;
+  std::stack<EditAction> m_undo_stack;
+  std::stack<EditAction> m_redo_stack;
+  void RecordAction(EditActionType type, size_t index, wchar_t ch);
 };
