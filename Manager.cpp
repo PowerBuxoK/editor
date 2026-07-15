@@ -17,7 +17,7 @@ void Manager::Draw()
   {
     for(int j = 0; j < m_windows.size(); j++)
     {
-      if(windows_sorted[i]->layer > windows_sorted[j]->layer)
+      if(windows_sorted[i]->layer < windows_sorted[j]->layer)
       {
         std::swap(windows_sorted[i], windows_sorted[j]);
       }

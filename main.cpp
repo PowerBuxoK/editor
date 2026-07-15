@@ -1,4 +1,5 @@
 #include "App.h"
+#include "Defines.h"
 #include <argparser/argparser.cpp>
 #include <ncurses.h>
 
@@ -13,7 +14,7 @@ int main(int argc, char* argv[])
   cbreak();
   noecho();
   keypad(stdscr, TRUE);
-  timeout(50);
+  timeout(DELTATIME);
 
   refresh();
 

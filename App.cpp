@@ -2,7 +2,9 @@
 #include "Buffer.h"
 #include "Defines.h"
 #include <algorithm>
+#include <cstdint>
 #include <curses.h>
+#include <string>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -66,6 +68,19 @@ App::App() : m_manager(m_windows)
     buf.m_is_user_buffer    = false;
     m_help_window->m_buf    = &buf;
   }
+  // Notification window
+  {
+    m_notification_window           = &m_windows.emplace_back();
+    m_notification_window->layer    = 999;
+    m_notification_window->m_x      = max_x - max_x / 3;
+    m_notification_window->m_y      = 0;
+    m_notification_window->m_width  = max_x / 3;
+    m_notification_window->m_height = max_y / 3;
+    m_notification_window->name     = L"Current notification";
+    Buffer& buf                     = m_buffers.emplace_back(*this);
+    buf.m_is_user_buffer            = false;
+    m_notification_window->m_buf    = &buf;
+  }
 };
 App::~App() {};
 
@@ -74,6 +89,7 @@ void App::run()
   while(!m_stop)
   {
     UpdateData();
+    UpdateNotifications();
     // Windows stuff
     if(CheckForResize())
       RecalculateLayout();
@@ -122,6 +138,14 @@ void App::RecalculateLayout()
     m_help_window->m_y      = max_y - 3;
     m_help_window->m_width  = max_x - max_x / 4 + max_x / 8;
     m_help_window->m_height = 3;
+  }
+  // Notification window
+  {
+    m_notification_window->layer    = 999;
+    m_notification_window->m_x      = max_x - max_x / 3;
+    m_notification_window->m_y      = 0;
+    m_notification_window->m_width  = max_x / 3;
+    m_notification_window->m_height = max_y / 3;
   }
   Draw();
   UpdateCursor();
@@ -222,6 +246,20 @@ void App::HandleInput()
     return;
   HandleKeypress(kp);
 };
+
+void App::UpdateNotifications()
+{
+  if(m_notifications.size() == 0)
+  {
+    m_notification_window->m_buf->m_buf.SetText(L"");
+    return;
+  }
+  m_notification_window->m_buf->m_buf.SetText(std::format(L"[Notify (1/{})]\n{}", m_notifications.size(), m_notifications.at(0).text));
+  if((m_notifications.at(0).time--) <= 0)
+  {
+    m_notifications.pop_front();
+  }
+}
 
 void App::Draw()
 {
@@ -344,8 +382,9 @@ void App::TryExecuteCommand()
     auto command_main = cmd.find(L" ") == cmd.npos ? cmd : cmd.substr(0, cmd.find(L" "));
     auto command_arg  = cmd.find(L" ") == cmd.npos ? L"" : cmd.substr(cmd.find(L" ") + 1);
     auto success      = HandleCommand(command_main, command_arg);
-    last_cmd          = std::format(L":CMD: {} {} \n[{}]", command_main, command_arg,
-                                    success);
+    SendNotification(success.size() < 10 ? 1000 : 3000, L"{}", success);
+    last_cmd = std::format(L":CMD: {} {}", command_main, command_arg,
+                           success);
   }
 };
 
@@ -400,7 +439,7 @@ std::wstring App::HandleCommand(const std::wstring& cmd, const std::wstring& arg
   {
     if(m_windows.size() <= m_focus)
     {
-      return L"No buffer!";
+      return L"No window!";
     }
 
     auto user_buffers = GetUserBuffers();
@@ -421,6 +460,27 @@ std::wstring App::HandleCommand(const std::wstring& cmd, const std::wstring& arg
 
     m_windows.at(m_focus).m_buf = user_buffers[new_idx];
     return L"SUCCESS";
+  }
+  if(cmd == L"bl")
+  {
+    if(m_windows.size() <= m_focus)
+    {
+      return L"No window!";
+    }
+    auto user_buffers = GetUserBuffers();
+    if(user_buffers.empty())
+    {
+      return L"No buffers open";
+    }
+    std::wstring m_to_send = L"Buffers:\n";
+
+    uint64_t cid = 0;
+    for(auto& buf : user_buffers)
+    {
+      cid++;
+      m_to_send += std::format(L"{}: {} {}\n", cid, buf->getDisplayName(), m_windows[m_focus].m_buf == buf ? L"[C]" : L"");
+    }
+    return m_to_send;
   }
 
   return L"No cmd found";

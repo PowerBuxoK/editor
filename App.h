@@ -37,7 +37,15 @@ public:
   void OpenFile(std::string path);
   void UpdateData();
   void UpdateCursor();
+  void UpdateNotifications();
   Window* GetCurrentWindow();
+  template <typename... Args>
+  void SendNotification(uint64_t time, std::wstring_view rt_fmt_str, Args&&... args)
+  {
+    const auto nots = std::format(L"{}", std::vformat(rt_fmt_str, std::make_wformat_args(args...)));
+
+    m_notifications.emplace_back(std::move(Notification_t{ time / DELTATIME, nots }));
+  }
 
   friend bool Buffer::HandleMacro(const size_t quantifier,
                                   const std::wstring& macro);
@@ -52,13 +60,16 @@ private:
   bool m_stop      = false;
   std::deque<Buffer> m_buffers;
   std::deque<Window> m_windows;
-  Window* m_data_window = nullptr;
-  Window* m_mode_window = nullptr;
-  Window* m_help_window = nullptr;
+  Window* m_data_window         = nullptr;
+  Window* m_mode_window         = nullptr;
+  Window* m_help_window         = nullptr;
+  Window* m_notification_window = nullptr;
   std::wstring last_cmd;
   GapBuffer m_command_buffer;
   Manager m_manager;
   int max_x = 0, max_y = 0;
   size_t m_next_buffer_id = 0;
   std::vector<Buffer*> GetUserBuffers();
+
+  std::deque<Notification_t> m_notifications;
 };

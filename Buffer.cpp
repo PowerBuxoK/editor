@@ -195,64 +195,63 @@ void Buffer::HandleInputVisual(const InputKeypress& kp)
         m_app.m_cur_mode = Mode::normal;
       }
       break;
-      case '0': 
+      case '0':
         m_buf.moveCursor(m_buf.FindLineStart(m_buf.m_front) - m_buf.m_front);
         break;
-      case '$': 
+      case '$':
         m_buf.moveCursor(m_buf.LineLength(m_buf.m_front));
         break;
 
-      
-      case 'w': 
-        if (m_buf.m_front < m_buf.size())
+      case 'w':
+        if(m_buf.m_front < m_buf.size())
         {
           m_buf.moveForward();
-          while (m_buf.m_front < m_buf.size() && m_buf[m_buf.m_front] != L' ' && m_buf[m_buf.m_front] != L'\n')
+          while(m_buf.m_front < m_buf.size() && m_buf[m_buf.m_front] != L' ' && m_buf[m_buf.m_front] != L'\n')
             m_buf.moveForward();
         }
         break;
-      case 'b': 
-        if (m_buf.m_front > 0)
+      case 'b':
+        if(m_buf.m_front > 0)
         {
           m_buf.moveBackward();
-          while (m_buf.m_front > 0 && m_buf[m_buf.m_front - 1] != L' ' && m_buf[m_buf.m_front - 1] != L'\n')
+          while(m_buf.m_front > 0 && m_buf[m_buf.m_front - 1] != L' ' && m_buf[m_buf.m_front - 1] != L'\n')
             m_buf.moveBackward();
         }
         break;
-        case 'd': 
+      case 'd':
       case 'x':
-        {
-          size_t start = std::min(m_visual_start_char, m_buf.m_front);
-          size_t end   = std::max(m_visual_start_char, m_buf.m_front);
-          
-          m_buf.moveCursor(static_cast<long long>(end) - static_cast<long long>(m_buf.m_front));
-          
-          size_t count = end - start;
-          for(size_t i = 0; i < count; i++)
-          {
-            if(m_buf.m_front > 0 && m_editable)
-              m_buf.deleteChar();
-          }
-          m_app.m_cur_mode = Mode::normal;
-        }
-        break;
+      {
+        size_t start = std::min(m_visual_start_char, m_buf.m_front);
+        size_t end   = std::max(m_visual_start_char, m_buf.m_front);
 
-      case 'c': 
+        m_buf.moveCursor(static_cast<long long>(end) - static_cast<long long>(m_buf.m_front));
+
+        size_t count = end - start;
+        for(size_t i = 0; i < count; i++)
         {
-          size_t start = std::min(m_visual_start_char, m_buf.m_front);
-          size_t end   = std::max(m_visual_start_char, m_buf.m_front);
-          
-          m_buf.moveCursor(static_cast<long long>(end) - static_cast<long long>(m_buf.m_front));
-          
-          size_t count = end - start;
-          for(size_t i = 0; i < count; i++)
-          {
-            if(m_buf.m_front > 0 && m_editable)
-              m_buf.deleteChar();
-          }
-          m_app.m_cur_mode = Mode::insert;
+          if(m_buf.m_front > 0 && m_editable)
+            m_buf.deleteChar();
         }
-        break;
+        m_app.m_cur_mode = Mode::normal;
+      }
+      break;
+
+      case 'c':
+      {
+        size_t start = std::min(m_visual_start_char, m_buf.m_front);
+        size_t end   = std::max(m_visual_start_char, m_buf.m_front);
+
+        m_buf.moveCursor(static_cast<long long>(end) - static_cast<long long>(m_buf.m_front));
+
+        size_t count = end - start;
+        for(size_t i = 0; i < count; i++)
+        {
+          if(m_buf.m_front > 0 && m_editable)
+            m_buf.deleteChar();
+        }
+        m_app.m_cur_mode = Mode::insert;
+      }
+      break;
     }
   }
   UpdateCursorData();
