@@ -25,9 +25,17 @@ bool Buffer::HandleMacro(const size_t quantifier, const std::wstring& macro)
       m_app.m_cur_mode = Mode::insert;
       break;
     case 'I':
-      m_buf.moveCursor(m_buf.FindLineStart(m_buf.m_front) - m_buf.m_front);
+    {
+      size_t line_start = m_buf.FindLineStart(m_buf.m_front);
+      size_t first_char = line_start;
+      while(first_char < m_buf.size() && (m_buf[first_char] == L' ' || m_buf[first_char] == L'\t') && m_buf[first_char] != L'\n')
+      {
+        first_char++;
+      }
+      m_buf.moveCursor(static_cast<long long>(first_char) - static_cast<long long>(m_buf.m_front));
       m_app.m_cur_mode = Mode::insert;
-      break;
+    }
+    break;
     case 'v':
       m_app.m_cur_mode    = Mode::visual;
       m_visual_start_char = m_buf.m_front;
@@ -109,7 +117,7 @@ void Buffer::HandleInputInsert(const InputKeypress& kp)
       case KEY_DC:
         if(m_editable && m_buf.m_front > 0)
         {
-          size_t delete_pos = m_buf.m_front - 1;
+          size_t delete_pos  = m_buf.m_front - 1;
           wchar_t deleted_ch = m_buf.m_data[delete_pos < m_buf.m_front ? delete_pos : delete_pos + m_buf.m_gap];
           m_buf.deleteChar();
           RecordAction(EditActionType::Delete, delete_pos, deleted_ch);
@@ -140,7 +148,7 @@ void Buffer::HandleInputInsert(const InputKeypress& kp)
       case 8:
         if(m_editable && m_buf.m_front > 0)
         {
-          size_t delete_pos = m_buf.m_front - 1;
+          size_t delete_pos  = m_buf.m_front - 1;
           wchar_t deleted_ch = m_buf.m_data[delete_pos < m_buf.m_front ? delete_pos : delete_pos + m_buf.m_gap];
           m_buf.deleteChar();
           RecordAction(EditActionType::Delete, delete_pos, deleted_ch);
@@ -451,12 +459,13 @@ std::wstring Buffer::getDisplayName() const
   {
     return L"[No Name]";
   }
-  return Utf8ToWstringICU(std::filesystem::path(m_path.value()).filename().string());}
+  return Utf8ToWstringICU(std::filesystem::path(m_path.value()).filename().string());
+}
 
 void Buffer::RecordAction(EditActionType type, size_t index, wchar_t ch)
 {
-  m_undo_stack.push({type, index, ch});
-  
+  m_undo_stack.push({ type, index, ch });
+
   while(!m_redo_stack.empty())
   {
     m_redo_stack.pop();

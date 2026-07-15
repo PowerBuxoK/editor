@@ -362,7 +362,7 @@ void App::HandleNormalMode(const InputKeypress& kp)
         m_command_buffer.insertChar(kp.ch);
         TryExecuteMacro();
         break;
-        case 'u':
+      case 'u':
         if(m_windows.size() > m_focus)
           m_windows.at(m_focus).m_buf->Undo();
         break;
@@ -490,7 +490,109 @@ std::wstring App::HandleCommand(const std::wstring& cmd, const std::wstring& arg
     }
     return m_to_send;
   }
+  if(cmd == L"b")
+  {
+    if(m_windows.size() <= m_focus)
+    {
+      return L"No window!";
+    }
+    if(arg.empty())
+    {
+      return L"Usage: :b <index>";
+    }
 
+    auto user_buffers = GetUserBuffers();
+    if(user_buffers.empty())
+    {
+      return L"No buffers open";
+    }
+
+    size_t idx = 0;
+    try
+    {
+      idx = std::stoull(arg);
+    }
+    catch(...)
+    {
+      return L"Invalid index";
+    }
+
+    if(idx == 0 || idx > user_buffers.size())
+    {
+      return L"Index out of range";
+    }
+
+    m_windows.at(m_focus).m_buf = user_buffers[idx - 1];
+    return L"SUCCESS";
+  }
+  if(cmd == L"bc")
+  {
+    if(m_windows.size() <= m_focus)
+    {
+      return L"No window!";
+    }
+
+    auto user_buffers = GetUserBuffers();
+    if(user_buffers.empty())
+    {
+      return L"No buffers open";
+    }
+
+    Buffer* target = nullptr;
+
+    if(arg.empty())
+    {
+      target = m_windows.at(m_focus).m_buf;
+      if(!target->m_is_user_buffer)
+      {
+        return L"Not a user buffer";
+      }
+    }
+    else
+    {
+      size_t idx = 0;
+      try
+      {
+        idx = std::stoull(arg);
+      }
+      catch(...)
+      {
+        return L"Invalid index";
+      }
+
+      if(idx == 0 || idx > user_buffers.size())
+      {
+        return L"Index out of range";
+      }
+
+      target = user_buffers[idx - 1];
+    }
+
+    if(user_buffers.size() == 1)
+    {
+      return L"Cannot close the last buffer";
+    }
+
+
+    size_t target_idx = std::distance(
+        user_buffers.begin(),
+        std::find(user_buffers.begin(), user_buffers.end(), target));
+
+    target->m_is_closed = true;
+
+    auto remaining   = GetUserBuffers();
+    Buffer* fallback = remaining[std::min(target_idx, remaining.size() - 1)];
+
+    for(auto& w : m_windows)
+    {
+      if(w.m_buf == target)
+      {
+        w.m_buf = fallback;
+      }
+    }
+
+    return L"SUCCESS";
+  }
   return L"No cmd found";
 }
 
@@ -657,7 +759,7 @@ std::vector<Buffer*> App::GetUserBuffers()
   std::vector<Buffer*> result;
   for(auto& b : m_buffers)
   {
-    if(b.m_is_user_buffer)
+    if(b.m_is_user_buffer && !b.m_is_closed)
     {
       result.emplace_back(&b);
     }

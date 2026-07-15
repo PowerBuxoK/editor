@@ -12,12 +12,11 @@
 #include <optional>
 #include <ostream>
 #include <sstream>
+#include <stack>
 #include <string>
 #include <unicode/unistr.h>
 #include <unicode/ustream.h>
 #include <vector>
-#include <stack>
-
 
 class App;
 
@@ -48,10 +47,11 @@ public:
 
   GapBuffer m_buf;
   bool m_is_user_buffer = true;
+  bool m_is_closed      = false;
   size_t m_id           = 0;
 
   std::wstring getDisplayName() const;
-  
+
 private:
   size_t cursor_x     = 0;
   size_t cursor_y     = 0;
@@ -60,8 +60,8 @@ private:
   size_t m_view_char  = 0;
   std::optional<std::string> m_path;
   App& m_app;
-  bool m_enable_wrapping = false;
-  bool m_editable        = true;
+  bool m_enable_wrapping     = false;
+  bool m_editable            = true;
   size_t m_visual_start_char = 0;
   std::stack<EditAction> m_undo_stack;
   std::stack<EditAction> m_redo_stack;
