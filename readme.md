@@ -10,17 +10,19 @@ A basic TUI text editor
 	- [x] Visual (selection mode)
 	- [x] Copy
 	- [x] Paste
-- [ ] Buffer juggling
+- [x] Buffer juggling
 - [x] Fix non-ASCII chars on Windows
-- [ ] Fix bug with stuck render
+- [x] Fix bug with stuck render
 - [ ] Optimize it
+- [ ] Rewrite how buffers and windows are stored to allow deletion (Maybe sth like an area allocator)
+
 
 ### Less-than-urgent
 
 - [x] Add automatic layout adjustment
-- [ ] Add buffer opening with command line arguments
+- [x] Add buffer opening with command line arguments
 
 ### Optional
 
-- [ ] Add I keybind for inserting in start of text
+- [x] Add I keybind for inserting in start of text
 - [ ] Add file explorer
