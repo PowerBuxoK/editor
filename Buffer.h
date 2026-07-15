@@ -18,18 +18,6 @@
 #include <vector>
 #include <stack>
 
-enum class EditActionType
-{
-  Insert,
-  Delete
-};
-
-struct EditAction
-{
-  EditActionType type;
-  size_t index;
-  wchar_t ch;
-};
 
 class App;
 
@@ -45,8 +33,6 @@ public:
   bool HandleMacro(const size_t quantifier, const std::wstring& macro);
   void HandleInputInsert(const InputKeypress& kp);
   void HandleInputVisual(const InputKeypress& kp);
-  // void EditActionType;
-  // void EditAction;
   void Undo();
   void Redo();
 

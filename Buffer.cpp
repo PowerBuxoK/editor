@@ -457,7 +457,6 @@ void Buffer::RecordAction(EditActionType type, size_t index, wchar_t ch)
 {
   m_undo_stack.push({type, index, ch});
   
-  // При любом новом действии пользователя очищаем стек возврата (Redo)
   while(!m_redo_stack.empty())
   {
     m_redo_stack.pop();
@@ -472,18 +471,15 @@ void Buffer::Undo()
   EditAction action = m_undo_stack.top();
   m_undo_stack.pop();
 
-  // Перемещаем курсор к месту изменения
   m_buf.moveCursor(static_cast<long long>(action.index) - static_cast<long long>(m_buf.m_front));
 
   if(action.type == EditActionType::Insert)
   {
-    // Если вставили символ — удаляем его (сдвинувшись вперед на него)
     m_buf.moveForward();
     m_buf.deleteChar();
   }
   else if(action.type == EditActionType::Delete)
   {
-    // Если удалили символ — вставляем его обратно
     m_buf.insertChar(action.ch);
   }
 
@@ -499,17 +495,14 @@ void Buffer::Redo()
   EditAction action = m_redo_stack.top();
   m_redo_stack.pop();
 
-  // Перемещаем курсор к месту изменения
   m_buf.moveCursor(static_cast<long long>(action.index) - static_cast<long long>(m_buf.m_front));
 
   if(action.type == EditActionType::Insert)
   {
-    // Повторяем вставку
     m_buf.insertChar(action.ch);
   }
   else if(action.type == EditActionType::Delete)
   {
-    // Повторяем удаление
     m_buf.moveForward();
     m_buf.deleteChar();
   }

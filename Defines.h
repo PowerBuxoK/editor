@@ -9,7 +9,21 @@ enum class Mode
   normal,
   insert,
   command,
-  visual
+  visual,
+  
+};
+
+enum class EditActionType
+{
+  Insert,
+  Delete
+};
+
+struct EditAction
+{
+  EditActionType type;
+  size_t index;
+  wchar_t ch;
 };
 
 struct Notification_t
