@@ -65,5 +65,5 @@ private:
   size_t m_visual_start_char = 0;
   std::stack<EditAction> m_undo_stack;
   std::stack<EditAction> m_redo_stack;
-  void RecordAction(EditActionType type, size_t index, wchar_t ch);
+  void RecordAction(EditActionType type, size_t index, const std::wstring& text);
 };

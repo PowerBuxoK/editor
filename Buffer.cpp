@@ -120,7 +120,7 @@ void Buffer::HandleInputInsert(const InputKeypress& kp)
           size_t delete_pos  = m_buf.m_front - 1;
           wchar_t deleted_ch = m_buf.m_data[delete_pos < m_buf.m_front ? delete_pos : delete_pos + m_buf.m_gap];
           m_buf.deleteChar();
-          RecordAction(EditActionType::Delete, delete_pos, deleted_ch);
+          RecordAction(EditActionType::Delete, delete_pos, std::wstring (1, deleted_ch));
         }
         break;
       case KEY_UP:
@@ -151,7 +151,7 @@ void Buffer::HandleInputInsert(const InputKeypress& kp)
           size_t delete_pos  = m_buf.m_front - 1;
           wchar_t deleted_ch = m_buf.m_data[delete_pos < m_buf.m_front ? delete_pos : delete_pos + m_buf.m_gap];
           m_buf.deleteChar();
-          RecordAction(EditActionType::Delete, delete_pos, deleted_ch);
+          RecordAction(EditActionType::Delete, delete_pos, std::wstring(1, deleted_ch));
         }
         break;
       default:
@@ -159,7 +159,7 @@ void Buffer::HandleInputInsert(const InputKeypress& kp)
         {
           size_t insert_pos = m_buf.m_front;
           m_buf.insertChar(kp.ch);
-          RecordAction(EditActionType::Insert, insert_pos, kp.ch);
+          RecordAction(EditActionType::Insert, insert_pos, std::wstring(1, kp.ch));
         }
         break;
     }
@@ -205,6 +205,12 @@ void Buffer::HandleInputVisual(const InputKeypress& kp)
       case 'k':
         m_buf.moveUp(cursor_x);
         break;
+      case 'u':
+        Undo();
+        break;
+      case 18: // Ctrl + R
+        Redo();
+        break;
       case 'y':
       {
         size_t start = std::min(m_visual_start_char, m_buf.m_front);
@@ -249,10 +255,21 @@ void Buffer::HandleInputVisual(const InputKeypress& kp)
         m_buf.moveCursor(static_cast<long long>(end) - static_cast<long long>(m_buf.m_front));
 
         size_t count = end - start;
-        for(size_t i = 0; i < count; i++)
+        if(count > 0 && m_editable)
         {
-          if(m_buf.m_front > 0 && m_editable)
-            m_buf.deleteChar();
+          std::wstring deleted_text = L"";
+          for(size_t i = start; i < end; i++)
+          {
+            deleted_text += m_buf[i];
+          }
+
+          RecordAction(EditActionType::Delete, start, deleted_text);
+
+          for(size_t i = 0; i < count; i++)
+          {
+            if(m_buf.m_front > 0)
+              m_buf.deleteChar();
+          }
         }
         m_app.m_cur_mode = Mode::normal;
       }
@@ -266,10 +283,21 @@ void Buffer::HandleInputVisual(const InputKeypress& kp)
         m_buf.moveCursor(static_cast<long long>(end) - static_cast<long long>(m_buf.m_front));
 
         size_t count = end - start;
-        for(size_t i = 0; i < count; i++)
+        if(count > 0 && m_editable)
         {
-          if(m_buf.m_front > 0 && m_editable)
-            m_buf.deleteChar();
+          std::wstring deleted_text = L"";
+          for(size_t i = start; i < end; i++)
+          {
+            deleted_text += m_buf[i];
+          }
+
+          RecordAction(EditActionType::Delete, start, deleted_text);
+
+          for(size_t i = 0; i < count; i++)
+          {
+            if(m_buf.m_front > 0)
+              m_buf.deleteChar();
+          }
         }
         m_app.m_cur_mode = Mode::insert;
       }
@@ -462,10 +490,9 @@ std::wstring Buffer::getDisplayName() const
   return Utf8ToWstringICU(std::filesystem::path(m_path.value()).filename().string());
 }
 
-void Buffer::RecordAction(EditActionType type, size_t index, wchar_t ch)
+void Buffer::RecordAction(EditActionType type, size_t index, const std::wstring& text)
 {
-  m_undo_stack.push({ type, index, ch });
-
+  m_undo_stack.push({ type, index, text });
   while(!m_redo_stack.empty())
   {
     m_redo_stack.pop();
@@ -485,11 +512,17 @@ void Buffer::Undo()
   if(action.type == EditActionType::Insert)
   {
     m_buf.moveForward();
-    m_buf.deleteChar();
+    for(size_t i = 0; i < action.text.size(); i++)
+    {
+      m_buf.deleteChar();
+    }
   }
   else if(action.type == EditActionType::Delete)
   {
-    m_buf.insertChar(action.ch);
+    for(wchar_t ch : action.text)
+    {
+      m_buf.insertChar(ch);
+    }
   }
 
   m_redo_stack.push(action);
@@ -504,16 +537,20 @@ void Buffer::Redo()
   EditAction action = m_redo_stack.top();
   m_redo_stack.pop();
 
-  m_buf.moveCursor(static_cast<long long>(action.index) - static_cast<long long>(m_buf.m_front));
-
   if(action.type == EditActionType::Insert)
   {
-    m_buf.insertChar(action.ch);
+    for(wchar_t ch : action.text)
+    {
+      m_buf.insertChar(ch);
+    }
   }
   else if(action.type == EditActionType::Delete)
   {
     m_buf.moveForward();
-    m_buf.deleteChar();
+    for(size_t i = 0; i < action.text.size(); i++)
+    {
+      m_buf.deleteChar();
+    }
   }
 
   m_undo_stack.push(action);
