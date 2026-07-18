@@ -1,6 +1,101 @@
 #include "Buffer.h"
 #include "App.h"
 #include "Defines.h"
+#include <cctype>
+#include <string>
+#include <string_view>
+#include <utility>
+
+bool isdelchar(const wchar_t ch)
+{
+  switch(ch)
+  {
+    case L'(':
+    case L')':
+    case L'{':
+    case L'}':
+    case L'[':
+    case L']':
+    case L',':
+    case L'.':
+    case L':':
+    case L' ':
+      return false;
+  }
+  return true;
+}
+
+Motion Buffer::EvaluateMotion(const wchar_t motion)
+{
+  Motion out = { false, m_buf.m_front, m_buf.m_front };
+  switch(motion)
+  {
+    case 'h':
+      out.valid = true;
+      if(m_buf.m_front > 0)
+        out.to = m_buf.m_front - 1;
+      break;
+    case 'l':
+      out.valid = true;
+      if(m_buf.m_total - m_buf.m_front - m_buf.m_gap != 0)
+        out.to = m_buf.m_front + 1;
+      break;
+    case 'j':
+    {
+      out.valid = true;
+
+      size_t cur_line_start  = m_buf.FindLineStart(m_buf.m_front);
+      size_t next_line_start = cur_line_start + m_buf.LineLength(cur_line_start) + 1;
+      if(next_line_start >= m_buf.size())
+        break;
+      size_t next_line_len = m_buf.LineLength(next_line_start);
+
+      size_t target_x = std::min(cursor_x, next_line_len);
+      out.to          = next_line_start + target_x;
+      break;
+    }
+    case 'k':
+    {
+      out.valid = true;
+
+      size_t cur_line_start = m_buf.FindLineStart(m_buf.m_front);
+      if(cur_line_start == 0)
+        break;
+      size_t prev_line_start = m_buf.FindLineStart(cur_line_start - 1);
+      size_t prev_line_len   = m_buf.LineLength(prev_line_start);
+
+      size_t target_x = std::min(cursor_x, prev_line_len);
+      out.to          = static_cast<int>(prev_line_start + target_x);
+
+      break;
+    }
+    case 'w':
+    {
+      out.valid = true;
+      if(m_buf.m_total - m_buf.m_front - m_buf.m_gap != 0)
+        out.to = m_buf.m_front + 1;
+      while(out.to < m_buf.size() && isdelchar(m_buf[out.to]))
+      {
+        out.to++;
+      }
+      break;
+    }
+    case 'e':
+    {
+      out.valid = true;
+      if(m_buf.m_total - m_buf.m_front - m_buf.m_gap != 0)
+        out.to = m_buf.m_front + 1;
+      while(out.to + 1 < m_buf.size() && isdelchar(m_buf[out.to + 1]))
+      {
+        out.to++;
+      }
+      break;
+    }
+    default:
+      break;
+  }
+  return out;
+}
 
 bool Buffer::HandleMacro(const size_t quantifier, const std::wstring& macro)
 {
@@ -8,6 +103,15 @@ bool Buffer::HandleMacro(const size_t quantifier, const std::wstring& macro)
   {
     return false;
   }
+
+  Motion motion      = EvaluateMotion(macro[0]);
+  wchar_t motion_chr = macro[0];
+  if(!motion.valid && macro.size() > 0)
+  {
+    motion_chr = macro[1];
+    motion     = EvaluateMotion(macro[1]);
+  }
+
   // One-letter macros
   switch(macro[0])
   {
@@ -88,19 +192,12 @@ bool Buffer::HandleMacro(const size_t quantifier, const std::wstring& macro)
             m_buf.moveForward();
             m_buf.deleteChar();
             break;
-          case 'h':
-            m_buf.moveBackward();
-            break;
-          case 'l':
-            m_buf.moveForward();
-            break;
-          case 'j':
-            m_buf.moveDown(cursor_x);
-            break;
-          case 'k':
-            m_buf.moveUp(cursor_x);
+          default:
+            if(motion.valid)
+              m_buf.moveCursor(motion.GetDelta());
             break;
         }
+        motion = EvaluateMotion(motion_chr);
       }
   }
   UpdateCursorData();

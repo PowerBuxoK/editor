@@ -30,6 +30,7 @@ public:
   void UpdateCursorData();
   void HandleInput(const Mode mode, const InputKeypress& kp);
   bool HandleMacro(const size_t quantifier, const std::wstring& macro);
+  Motion EvaluateMotion(const wchar_t motion);
   void HandleInputInsert(const InputKeypress& kp);
   void HandleInputVisual(const InputKeypress& kp);
   void Undo();

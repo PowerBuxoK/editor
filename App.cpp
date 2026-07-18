@@ -359,6 +359,8 @@ void App::HandleNormalMode(const InputKeypress& kp)
       case 'p':
       case 'P':
       case 'v':
+      case 'w':
+      case 'e':
         m_command_buffer.insertChar(kp.ch);
         TryExecuteMacro();
         break;
@@ -572,7 +574,6 @@ std::wstring App::HandleCommand(const std::wstring& cmd, const std::wstring& arg
     {
       return L"Cannot close the last buffer";
     }
-
 
     size_t target_idx = std::distance(
         user_buffers.begin(),

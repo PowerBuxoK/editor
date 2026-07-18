@@ -9,14 +9,24 @@ enum class Mode
   normal,
   insert,
   command,
-  visual,
-  
+  visual
 };
 
 enum class EditActionType
 {
   Insert,
   Delete
+};
+
+struct Motion
+{
+  int GetDelta()
+  {
+    return to - from;
+  }
+  bool valid;
+  size_t from;
+  size_t to;
 };
 
 struct EditAction
