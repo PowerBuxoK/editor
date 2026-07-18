@@ -33,7 +33,7 @@ struct EditAction
 {
   EditActionType type;
   size_t index;
-  wchar_t ch;
+  std::wstring text;
 };
 
 struct Notification_t
