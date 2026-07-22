@@ -360,6 +360,7 @@ void App::HandleNormalMode(const InputKeypress& kp)
       case 'y':
       case 'p':
       case 'P':
+      case 'c':
       case 'v':
       case 'd':
       case 'w':

@@ -128,6 +128,14 @@ bool Buffer::HandleMacro(const size_t quantifier, const std::wstring& macro)
     }
     return true;
   }
+  else
+  {
+    if(motion.valid)
+    {
+      m_buf.moveCursor(motion.GetDelta());
+      return true;
+    }
+  }
 
   // One-letter macros legacy
   switch(macro[0])
@@ -161,65 +169,14 @@ bool Buffer::HandleMacro(const size_t quantifier, const std::wstring& macro)
       m_app.m_cur_mode    = Mode::visual;
       m_visual_start_char = m_buf.m_front;
       break;
-    default:
-      // Executed by quantifier
-      for(size_t i = 0; i < quantifier; i++)
-      {
-        switch(macro[0])
-        {
-          case 'p':
-            if(!m_editable)
-              break;
-            if(!m_app.m_clipboard.empty() && m_editable)
-            {
-              for(wchar_t ch : m_app.m_clipboard)
-              {
-                m_buf.insertChar(ch);
-              }
-            }
-            break;
-          case 'P':
-            if(!m_editable)
-              break;
-            if(!m_app.m_clipboard.empty() && m_editable)
-            {
-              if(m_buf[m_buf.m_front] != '\n')
-                m_buf.moveForward();
-              for(wchar_t ch : m_app.m_clipboard)
-              {
-                m_buf.insertChar(ch);
-              }
-              m_buf.moveBackward();
-            }
-            break;
-          case 'X':
-            if(!m_editable)
-              break;
-            if(m_buf.m_front == 0 || m_buf[m_buf.m_front - 1] == L'\n')
-            {
-              break;
-            }
-            m_buf.deleteChar();
-            break;
-          case 'x':
-            if(!m_editable)
-              break;
-            if(m_buf.m_front == m_buf.size() || m_buf[m_buf.m_front] == L'\n')
-              break;
-            m_buf.moveForward();
-            m_buf.deleteChar();
-            break;
-          default:
-            if(motion.valid)
-              m_buf.moveCursor(motion.GetDelta());
-            break;
-        }
-        motion = EvaluateMotion(motion_chr);
-      }
-  }
-  UpdateCursorData();
+    default: 
+    break;
+  }UpdateCursorData();
   return true;
-};
+}
+
+     
+      
 
 void Buffer::HandleInputInsert(const InputKeypress& kp)
 {
@@ -310,10 +267,10 @@ void Buffer::HandleInputVisual(const InputKeypress& kp)
       size_t end   = std::max(m_visual_start_char, m_buf.m_front);
 
       Motion visual_motion = { true, start, end };
-
+      m_app.m_cur_mode = Mode::normal;
       cmd->func_ptr(this, visual_motion);
       UpdateCursorData();
-      m_app.m_cur_mode = Mode::normal;
+      
       return;
     }
 
