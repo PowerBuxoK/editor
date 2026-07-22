@@ -126,6 +126,7 @@ bool Buffer::HandleMacro(const size_t quantifier, const std::wstring& macro)
       cmd->func_ptr(this, motion);
       motion = EvaluateMotion(motion_chr);
     }
+    UpdateCursorData();
     return true;
   }
   else
@@ -133,50 +134,14 @@ bool Buffer::HandleMacro(const size_t quantifier, const std::wstring& macro)
     if(motion.valid)
     {
       m_buf.moveCursor(motion.GetDelta());
+      UpdateCursorData();
       return true;
     }
   }
 
-  // One-letter macros legacy
-  switch(macro[0])
-  {
-      // Executed one time
-    // case 'a':
-    //   if(m_buf[m_buf.m_front] != '\n')
-    //     m_buf.moveForward();
-    //   m_app.m_cur_mode = Mode::insert;
-    //   break;
-    case 'A':
-      m_buf.moveCursor(m_buf.LineLength(m_buf.m_front));
-      m_app.m_cur_mode = Mode::insert;
-      break;
-    case 'i':
-      m_app.m_cur_mode = Mode::insert;
-      break;
-    case 'I':
-    {
-      size_t line_start = m_buf.FindLineStart(m_buf.m_front);
-      size_t first_char = line_start;
-      while(first_char < m_buf.size() && (m_buf[first_char] == L' ' || m_buf[first_char] == L'\t') && m_buf[first_char] != L'\n')
-      {
-        first_char++;
-      }
-      m_buf.moveCursor(static_cast<long long>(first_char) - static_cast<long long>(m_buf.m_front));
-      m_app.m_cur_mode = Mode::insert;
-    }
-    break;
-    case 'v':
-      m_app.m_cur_mode    = Mode::visual;
-      m_visual_start_char = m_buf.m_front;
-      break;
-    default: 
-    break;
-  }UpdateCursorData();
+  UpdateCursorData();
   return true;
 }
-
-     
-      
 
 void Buffer::HandleInputInsert(const InputKeypress& kp)
 {
@@ -267,10 +232,10 @@ void Buffer::HandleInputVisual(const InputKeypress& kp)
       size_t end   = std::max(m_visual_start_char, m_buf.m_front);
 
       Motion visual_motion = { true, start, end };
-      m_app.m_cur_mode = Mode::normal;
+      m_app.m_cur_mode     = Mode::normal;
       cmd->func_ptr(this, visual_motion);
       UpdateCursorData();
-      
+
       return;
     }
 

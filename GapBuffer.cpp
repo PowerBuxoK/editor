@@ -97,20 +97,14 @@ void GapBuffer::insertChar(wchar_t c)
 void GapBuffer::deleteChar(size_t count)
 {
   count = std::min(m_front, count);
-  if(m_front > 0)
-  {
-    m_front -= count;
-    m_gap += count;
-  }
+  m_front -= count;
+  m_gap += count;
 }
 
 void GapBuffer::deleteCharFront(size_t count)
 {
   count = std::min(count, size() - m_front);
-  if(m_front > 0)
-  {
-    m_gap += count;
-  }
+  m_gap += count;
 }
 
 void GapBuffer::moveForward()

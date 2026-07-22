@@ -14,6 +14,32 @@ void RegisterDefaultCommands(CommandManager& manager)
                         return true;
                       });
 
+  manager.PushCommand(L'i', false, true, [](Buffer* buf, const Motion& motion)
+                      {
+                        buf->m_app.m_cur_mode = Mode::insert;
+                        return true;
+                      });
+
+  manager.PushCommand(L'A', false, true, [](Buffer* buf, const Motion& motion)
+                      {
+                        buf->m_buf.moveCursor(buf->m_buf.LineLength(buf->m_buf.m_front));
+                        buf->m_app.m_cur_mode = Mode::insert;
+                        return true;
+                      });
+
+  manager.PushCommand(L'i', false, true, [](Buffer* buf, const Motion& motion)
+                      {
+                        size_t line_start = buf->m_buf.FindLineStart(buf->m_buf.m_front);
+                        size_t first_char = line_start;
+                        while(first_char < buf->m_buf.size() && (buf->m_buf[first_char] == L' ' || buf->m_buf[first_char] == L'\t') && buf->m_buf[first_char] != L'\n')
+                        {
+                          first_char++;
+                        }
+                        buf->m_buf.moveCursor(static_cast<long long>(first_char) - static_cast<long long>(buf->m_buf.m_front));
+                        buf->m_app.m_cur_mode = Mode::insert;
+                        return true;
+                      });
+
   manager.PushCommand(L'd', true, false, [](Buffer* buf, const Motion& motion)
                       {
                         buf->m_buf.moveTo(motion.from);
@@ -42,33 +68,11 @@ void RegisterDefaultCommands(CommandManager& manager)
   manager.PushCommand(L'x', true, true, [](Buffer* buf, const Motion& motion)
                       {
                         if(!buf->m_editable)
-                          return false;
-
-                        size_t start = std::min(motion.from, motion.to);
-                        size_t end   = std::max(motion.from, motion.to);
-                        if(start == end && start < buf->m_buf.size())
-                        {
-                          end = start + 1;
-                        }
-
-                        size_t count = end - start;
-                        if(count > 0)
-                        {
-                          std::wstring deleted_text = L"";
-                          for(size_t i = start; i < end; i++)
-                          {
-                            deleted_text += buf->m_buf[i];
-                          }
-
-                          buf->RecordAction(EditActionType::Delete, start, deleted_text);
-
-                          buf->m_buf.moveTo(start);
-                          for(size_t i = 0; i < count; i++)
-                          {
-                            buf->m_buf.deleteCharFront();
-                          }
-                        }
-                        buf->m_app.m_cur_mode = Mode::normal;
+                          return true;
+                        if(buf->m_buf.m_front == buf->m_buf.size() || buf->m_buf[buf->m_buf.m_front] == L'\n')
+                          return true;
+                        buf->m_buf.moveForward();
+                        buf->m_buf.deleteChar();
                         return true;
                       });
   manager.PushCommand(L'c', true, false, [](Buffer* buf, const Motion& motion)
