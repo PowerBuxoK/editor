@@ -119,7 +119,10 @@ bool Buffer::HandleMacro(const size_t quantifier, const std::wstring& macro)
       return false;
 
     for(size_t i = 0; i < (cmd->repeatable ? quantifier : 1); i++)
+    {
       cmd->func_ptr(this, motion);
+      motion = EvaluateMotion(motion_chr);
+    }
     return true;
   }
 

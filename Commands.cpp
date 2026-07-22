@@ -13,7 +13,7 @@ void RegisterDefaultCommands(CommandManager& manager)
                         return true;
                       });
 
-  manager.PushCommand(L'd', false, false, [](Buffer* buf, const Motion& motion)
+  manager.PushCommand(L'd', true, false, [](Buffer* buf, const Motion& motion)
                       {
                         buf->m_buf.moveTo(motion.from);
                         if(motion.GetDelta() > 0)
