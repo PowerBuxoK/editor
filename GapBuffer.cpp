@@ -84,7 +84,7 @@ void GapBuffer::grow(size_t size)
           (old_total - m_front - (m_gap - (m_total - old_total))) * sizeof(wchar_t));
 }
 
-void GapBuffer::insertChar(size_t c)
+void GapBuffer::insertChar(wchar_t c)
 {
   if(m_gap == 0)
     grow(1);

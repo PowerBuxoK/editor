@@ -14,7 +14,7 @@ public:
   void moveCursor(int delta);
   void moveTo(size_t id);
   void grow(size_t size);
-  void insertChar(size_t c);
+  void insertChar(wchar_t c);
   void deleteChar(size_t count = 1);
   void deleteCharFront(size_t count = 1);
   void moveForward();
