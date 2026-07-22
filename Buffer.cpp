@@ -100,8 +100,11 @@ Motion Buffer::EvaluateMotion(const wchar_t motion)
 bool Buffer::HandleMacro(const size_t quantifier, const std::wstring& macro)
 {
   if(macro.size() <= 0)
-  {
     return false;
+  if(macro.size() > 2)
+  {
+    m_app.SendNotification(500, L"Invald macro");
+    return true;
   }
 
   Motion motion      = EvaluateMotion(macro[0]);
