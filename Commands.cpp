@@ -22,4 +22,20 @@ void RegisterDefaultCommands(CommandManager& manager)
                           buf->m_buf.deleteChar(-motion.GetDelta());
                         return true;
                       });
+  manager.PushCommand(L'y', false, false, [](Buffer* buf, const Motion& motion)
+                      {
+                        if(!motion.valid)
+                          return false;
+
+                        size_t start = std::min(motion.from, motion.to);
+                        size_t end   = std::max(motion.from, motion.to);
+
+                        buf->m_app.m_clipboard.clear();
+                        for(size_t i = start; i < end; i++)
+                        {
+                          buf->m_app.m_clipboard += buf->m_buf[i];
+                        }
+                        buf->m_app.m_cur_mode = Mode::normal;
+                        return true;
+                      });
 }

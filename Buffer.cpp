@@ -302,6 +302,20 @@ void Buffer::HandleInputVisual(const InputKeypress& kp)
   }
   else
   {
+    //Новая система команд vvv
+    auto cmd = m_app.m_cmd_manager.FindCommand(kp.ch);
+    if(cmd && !cmd->immidiate)
+    {
+      size_t start = std::min(m_visual_start_char, m_buf.m_front);
+      size_t end   = std::max(m_visual_start_char, m_buf.m_front);
+
+      Motion visual_motion = { true, start, end };
+
+      cmd->func_ptr(this, visual_motion);
+      UpdateCursorData();
+      return;
+    }
+    //Новая система команд ^^^
     switch(kp.ch)
     {
       case 27:
