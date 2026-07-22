@@ -20,9 +20,9 @@ enum class EditActionType
 
 struct Motion
 {
-  int GetDelta() const
+  int64_t GetDelta() const
   {
-    return to - from;
+    return static_cast<int64_t>(to) - static_cast<int64_t>(from);
   }
   bool valid;
   size_t from;

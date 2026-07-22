@@ -19,7 +19,7 @@ void RegisterDefaultCommands(CommandManager& manager)
                         if(motion.GetDelta() > 0)
                           buf->m_buf.deleteCharFront(motion.GetDelta());
                         else
-                          buf->m_buf.deleteChar(motion.GetDelta());
+                          buf->m_buf.deleteChar(-motion.GetDelta());
                         return true;
                       });
 }
