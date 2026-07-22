@@ -1,5 +1,6 @@
 #include "App.h"
 #include "Buffer.h"
+#include "Commands.cpp"
 #include "Defines.h"
 #include <algorithm>
 #include <cstdint>
@@ -81,6 +82,7 @@ App::App() : m_manager(m_windows)
     buf.m_is_user_buffer            = false;
     m_notification_window->m_buf    = &buf;
   }
+  RegisterDefaultCommands(m_cmd_manager);
 };
 App::~App() {};
 
@@ -359,6 +361,7 @@ void App::HandleNormalMode(const InputKeypress& kp)
       case 'p':
       case 'P':
       case 'v':
+      case 'd':
       case 'w':
       case 'e':
         m_command_buffer.insertChar(kp.ch);

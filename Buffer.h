@@ -1,4 +1,5 @@
 #pragma once
+#include "CommandManager.h"
 #include "Defines.h"
 #include "GapBuffer.h"
 #include "UTFHelpers.h"
@@ -52,6 +53,9 @@ public:
   size_t m_id           = 0;
 
   std::wstring getDisplayName() const;
+
+  friend CommandManager;
+  friend void RegisterDefaultCommands(CommandManager& manager);
 
 private:
   size_t cursor_x     = 0;

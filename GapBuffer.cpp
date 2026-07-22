@@ -51,6 +51,14 @@ void GapBuffer::moveCursor(int delta)
   memmove(dst, src, len * sizeof(wchar_t));
 }
 
+void GapBuffer::moveTo(size_t id)
+{
+  if(id >= size())
+    return;
+
+  moveCursor(static_cast<int>(id) - static_cast<int>(m_front));
+};
+
 void GapBuffer::grow(size_t size)
 {
   if(m_gap >= size)
@@ -76,7 +84,7 @@ void GapBuffer::grow(size_t size)
           (old_total - m_front - (m_gap - (m_total - old_total))) * sizeof(wchar_t));
 }
 
-void GapBuffer::insertChar(wchar_t c)
+void GapBuffer::insertChar(size_t c)
 {
   if(m_gap == 0)
     grow(1);
@@ -86,12 +94,22 @@ void GapBuffer::insertChar(wchar_t c)
   m_gap--;
 }
 
-void GapBuffer::deleteChar()
+void GapBuffer::deleteChar(size_t count)
 {
+  count = std::min(m_front, count);
   if(m_front > 0)
   {
-    m_front--;
-    m_gap++;
+    m_front -= count;
+    m_gap += count;
+  }
+}
+
+void GapBuffer::deleteCharFront(size_t count)
+{
+  count = std::min(count, size() - m_front);
+  if(m_front > 0)
+  {
+    m_gap += count;
   }
 }
 

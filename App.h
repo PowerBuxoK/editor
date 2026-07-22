@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Buffer.h"
+#include "CommandManager.h"
 #include "Defines.h"
 #include "GapBuffer.h"
 #include "Manager.h"
@@ -66,6 +67,7 @@ private:
   Window* m_notification_window = nullptr;
   std::wstring last_cmd;
   GapBuffer m_command_buffer;
+  CommandManager m_cmd_manager;
   Manager m_manager;
   int max_x = 0, max_y = 0;
   size_t m_next_buffer_id = 0;

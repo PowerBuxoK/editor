@@ -20,7 +20,7 @@ enum class EditActionType
 
 struct Motion
 {
-  int GetDelta()
+  int GetDelta() const
   {
     return to - from;
   }

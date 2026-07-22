@@ -12,9 +12,11 @@ public:
   ~GapBuffer();
 
   void moveCursor(int delta);
+  void moveTo(size_t id);
   void grow(size_t size);
-  void insertChar(wchar_t c);
-  void deleteChar();
+  void insertChar(size_t c);
+  void deleteChar(size_t count = 1);
+  void deleteCharFront(size_t count = 1);
   void moveForward();
   void moveBackward();
   void moveUp(size_t cursor_x);

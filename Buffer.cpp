@@ -112,15 +112,26 @@ bool Buffer::HandleMacro(const size_t quantifier, const std::wstring& macro)
     motion     = EvaluateMotion(macro[1]);
   }
 
-  // One-letter macros
+  auto cmd = m_app.m_cmd_manager.FindCommand(macro[0]);
+  if(cmd)
+  {
+    if(!cmd->immidiate && !motion.valid)
+      return false;
+
+    for(size_t i = 0; i < (cmd->repeatable ? quantifier : 1); i++)
+      cmd->func_ptr(this, motion);
+    return true;
+  }
+
+  // One-letter macros legacy
   switch(macro[0])
   {
       // Executed one time
-    case 'a':
-      if(m_buf[m_buf.m_front] != '\n')
-        m_buf.moveForward();
-      m_app.m_cur_mode = Mode::insert;
-      break;
+    // case 'a':
+    //   if(m_buf[m_buf.m_front] != '\n')
+    //     m_buf.moveForward();
+    //   m_app.m_cur_mode = Mode::insert;
+    //   break;
     case 'A':
       m_buf.moveCursor(m_buf.LineLength(m_buf.m_front));
       m_app.m_cur_mode = Mode::insert;
@@ -217,7 +228,7 @@ void Buffer::HandleInputInsert(const InputKeypress& kp)
           size_t delete_pos  = m_buf.m_front - 1;
           wchar_t deleted_ch = m_buf.m_data[delete_pos < m_buf.m_front ? delete_pos : delete_pos + m_buf.m_gap];
           m_buf.deleteChar();
-          RecordAction(EditActionType::Delete, delete_pos, std::wstring (1, deleted_ch));
+          RecordAction(EditActionType::Delete, delete_pos, std::wstring(1, deleted_ch));
         }
         break;
       case KEY_UP:

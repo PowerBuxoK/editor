@@ -30,6 +30,7 @@ add_executable(editor
   ./Manager.cpp
   ./Window.cpp
   ./Buffer.cpp
+	./CommandManager.cpp
 )
 
 target_compile_definitions(editor PRIVATE NCURSES_WIDECHAR=1)
