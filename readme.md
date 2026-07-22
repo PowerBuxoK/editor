@@ -15,6 +15,7 @@ A basic TUI text editor
 - [x] Fix bug with stuck render
 - [ ] Optimize it
 - [ ] Rewrite how buffers and windows are stored to allow deletion (Maybe sth like an area allocator)
+- [ ] Reimplement undo
 
 
 ### Less-than-urgent
