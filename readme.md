@@ -20,6 +20,7 @@ A basic TUI text editor
 - ncurses
 - icu
 - cmake
+- make (optional)
 
 ### Building
 
@@ -31,7 +32,7 @@ cmake -B ./build/ -S .
 cmake --build ./build/
 ```
 
-#### Linux
+#### Linux (if you don't have make, use commands for Windows)
 
 In source directory:
 ```
