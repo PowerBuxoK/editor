@@ -2,6 +2,44 @@
 
 A basic TUI text editor
 
+## How to build
+
+### Dependencies
+
+#### Windows
+
+- MSYS2
+- mingw-w64-ucrt-x86_64-gcc
+- mingw-w64-ucrt-x86_64-ncurses
+- mingw-w64-ucrt-x86_64-icu
+- mingw-w64-ucrt-x86_64-cmake
+
+#### Linux
+
+- gcc
+- ncurses
+- icu
+- cmake
+
+### Building
+
+#### Windows
+
+In source directory:
+```
+cmake -B ./build/ -S .
+cmake --build ./build/
+```
+
+#### Linux
+
+In source directory:
+```
+make
+```
+
+##### Output files will be located in ./build/
+
 ## TODO
 
 ### Urgent
